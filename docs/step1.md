@@ -242,3 +242,96 @@ Se da problemi è utile usare questo comando per vedere i log
 TF_LOG=INFO terraform apply
 ```
 
+“I encountered and mitigated instability issues in the Proxmox Terraform provider by tuning timeouts and switching to API token authentication.”
+
+🧱 1. Proxmox + Terraform: creazione VM automatizzata
+
+Obiettivo
+Clonare automaticamente una VM template (ID 100) in più VM tramite Terraform.
+
+Cosa hai fatto
+
+Installato e configurato Terraform
+
+Usato il provider telmate/proxmox
+
+Scritto configurazione per clonare la VM 100 in:
+
+VM 101
+
+VM 102
+
+Problemi incontrati
+
+Errori di permessi (VM.Monitor)
+
+Errori di autenticazione (401 authentication failure)
+
+Provider che crashava dopo l’apply
+
+Soluzione
+
+Capito la differenza tra utenti @pam e @pve
+
+Creato utente Proxmox nativo enrico@pve
+
+Assegnato ruolo PVEAdmin
+
+Aggiornato provider.tf per usare enrico@pve
+
+Le VM vengono create correttamente (anche se il provider resta instabile)
+
+👉 Risultato: infrastruttura VM creata via IaC ✔️
+
+🔐 2. SSH: accesso sicuro e pronto per automazione
+
+Obiettivo
+Accedere alle VM clonate senza password, in modo automatizzabile.
+
+Cosa hai fatto
+
+Generato / usato chiavi SSH
+
+Sistemato known_hosts quando le VM clonate avevano chiavi diverse
+
+Effettuato accesso da WSL via SSH key-based
+
+Problema risolto
+
+Errore “REMOTE HOST IDENTIFICATION HAS CHANGED”
+
+Soluzione
+
+Usato ssh-keygen -R <ip>
+
+Riconnesso e accettato la nuova chiave
+
+👉 Risultato: accesso SSH stabile e automatizzabile ✔️
+
+🧠 3. Comprensione architetturale (valore reale)
+
+Hai capito e applicato concetti non banali:
+
+Differenza tra:
+
+utente di sistema (@pam)
+
+utente API (@pve)
+
+Perché l’automazione deve usare utenti Proxmox nativi
+
+Limiti reali del provider Terraform per Proxmox
+
+Perché SSH con chiavi è fondamentale per CI/CD
+
+👉 Questo non è tutorial copying, è troubleshooting vero.
+
+🎓 COME LO PUOI SCRIVERE (CV / README)
+
+Puoi letteralmente scrivere:
+
+Implemented infrastructure automation on Proxmox using Terraform to clone and provision virtual machines from templates. Solved authentication and permission issues by migrating from system users to Proxmox native users and enabling SSH key-based access for automated provisioning.
+
+Oppure più semplice:
+
+Automated VM provisioning on Proxmox using Terraform and prepared the environment for CI/CD automation with SSH key-based access.
