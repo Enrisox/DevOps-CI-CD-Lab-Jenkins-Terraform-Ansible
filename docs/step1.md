@@ -72,9 +72,141 @@ Apri il tuo terminale Ubuntu/WSL su Windows e incolla questi comandi (uno alla v
 # Aggiungi la chiave di HashiCorp
 wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
 
-# Aggiungi il repository ufficiale
-echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
+echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list        # Aggiungi il repository ufficiale
 
-# Installa Terraform
-sudo apt update && sudo apt install terraform -y
+sudo apt update && sudo apt install terraform -y    # Installo Terraform
+```
+**controllo che sia installato**
+```bash
+terraform -version
+```
+
+Terraform v1.14.3
+on linux_amd64
+
+**creato l'API Token su Proxmox (Datacenter -> Permissions -> API Tokens). Senza quello, Terraform non ha il permesso di entrare nel server.**
+
+- Clicca su Add.
+- User: root@pam
+- Token ID: terraform-token
+- Privilege Separation: Deselezionalo (per ora semplifica la gestione dei permessi).
+- Clicca su Add.
+
+**Copia subito il "Secret" che appare (una stringa lunga). Non verrà più mostrato. Copialo in un file di testo temporaneo sul tuo Windows.**
+
+-------------------------------------------
+**Preparare la cartella del progetto
+Sempre nel WSL, crea una cartella per il tuo progetto e i file necessari:**
+
+```bash
+mkdir ~/lab-proxmox && cd ~/lab-proxmox
+touch provider.tf main.tf vars.tf
+```
+-----------------------------------
+**Scrivere il file provider.tf**
+```bash
+nano provider.tf
+```
+**Inizializzare Terraform scaricando driver necessari**
+
+```bash
+terraform init
+```
+
+foto con scritte verdi vuol dire che ha funzionato!!
+
+```bash
+nano provider.tf
+
+terraform {
+  required_providers {
+    proxmox = {
+      source  = "telmate/proxmox"
+      version = "2.9.11"
+    }
+  }
+}
+
+provider "proxmox" {
+  pm_api_url          = "https://IP-PROXMOX:8006/api2/json"
+  pm_api_token_id     = "root@pam!terraform-token"
+  pm_api_token_secret = "TOKEN-API-GENERATO-PRIMA"
+  pm_tls_insecure     = true # Se non hai certificati SSL validi
+  pm_parallel         = 1   #IMPORTANTE SE NON DA ERRORE COI PERMESSI 
+}
+
+
+```
+su gui proxmox, permessi
+1. root@pam permessi di / , gruppo admins
+2. permessi token API --aggiungi--> token id = terraform-token   utente root@pam , permessi administrator in /
+
+```bash
+nano main.tf
+```
+**incolla dentro**
+```bash
+# --- VM 1: JENKINS ---
+resource "proxmox_vm_qemu" "jenkins_vm" {
+  name        = "jenkins-ci"
+  target_node = "Proxmox"
+  vmid        = 101
+  clone       = "100"
+  full_clone  = true
+
+  cores   = 2
+  memory  = 4096
+  agent   = 1
+
+  disk {
+    slot    = 0
+    size    = "20G"
+    type    = "scsi"
+    storage = "local-lvm"
+  }
+
+  os_type   = "cloud-init"
+  ipconfig0 = "ip=192.168.1.91/24,gw=192.168.1.1"
+
+  ciuser     = "enrico"
+  sshkeys    = <<EOF
+  ssh-ed25519**********chiave-ssh*************
+  EOF
+}
+
+# --- VM 2: RUNTIME ---
+resource "proxmox_vm_qemu" "runtime_vm" {
+  name        = "app-runtime"
+  target_node = "Proxmox"
+  vmid        = 102
+  clone       = "100"
+  full_clone  = true
+
+  cores   = 2
+  memory  = 4096
+  agent   = 1
+
+  disk {
+    slot    = 0      # <--- Deve essere una stringa completa
+    size    = "20G"
+    type    = "scsi"       
+    storage = "local-lvm"
+  }
+
+  os_type   = "cloud-init"
+  ipconfig0 = "ip=192.168.1.92/24,gw=192.168.1.1"
+
+  ciuser     = "enrico"
+  sshkeys    = <<EOF
+  ssh-ed25519**********chiave-ssh*************
+  EOF
+}
+```
+**testiamo main.tf**
+```bash
+terraform plan
+```
+**diamo vita alle due vm**
+```bash
+terraform apply
 ```
