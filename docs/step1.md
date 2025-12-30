@@ -335,3 +335,70 @@ Implemented infrastructure automation on Proxmox using Terraform to clone and pr
 Oppure più semplice:
 
 Automated VM provisioning on Proxmox using Terraform and prepared the environment for CI/CD automation with SSH key-based access.
+
+LA CHIAVE SSH L'AVEVO MESSA IN CLOUD INIT DELLA VM 100 DA CLONARE E LE ALTRE LA EREDITANO PERMETTENDOMI DI ACCEDERE SENZA PASSWORD
+
+COME FUNZIONANO LE CHIAVI SSH (VERITÀ FONDAMENTALE)
+
+La chiave non è “del PC”, è:
+
+del client SSH
+
+
+E tu hai due client diversi:
+
+Ambiente	Percorso chiavi
+WSL (Linux)	/home/enrico/.ssh/id_ed25519
+Windows CMD / PowerShell	C:\Users\Enrico\.ssh\id_ed25519
+
+Sono file diversi.
+
+COSA HAI FATTO (SENZA RENDERTENE CONTO)
+
+Hai messo UNA SOLA chiave pubblica nella VM, probabilmente:
+quella generata in WSL
+
+quindi:
+
+WSL entra ✔️
+CMD Windows ❌ (usa un’altra chiave)
+
+Non c’è contraddizione.
+
+SOLUZIONE CORRETTA (PROFESSIONALE)
+Puoi mettere PIÙ chiavi nello stesso utente
+
+authorized_keys supporta infinite chiavi.
+
+OPZIONE 1 – COPIA LA CHIAVE WINDOWS SULLA VM
+1. Vedi la chiave pubblica Windows (CMD o PowerShell):
+type C:\Users\Enrico\.ssh\id_ed25519.pub
+
+
+(se non esiste → ssh-keygen)
+
+2. Sulla VM:
+nano ~/.ssh/authorized_keys
+
+
+Incolla sotto la chiave WSL.
+
+Salva.
+
+Ora:
+
+WSL ✔️
+CMD ✔️
+
+🔵 OPZIONE 2 – RIUSA LA STESSA CHIAVE (consigliata)
+
+Puoi dire a Windows di usare la chiave WSL.
+
+In PowerShell:
+
+ssh -i \\wsl$\Ubuntu\home\enrico\.ssh\id_ed25519 enrico@192.168.1.101
+
+
+Oppure copia la chiave WSL in:
+
+C:\Users\Enrico\.ssh\
