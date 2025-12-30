@@ -103,11 +103,17 @@ mkdir ~/lab-proxmox && cd ~/lab-proxmox
 touch provider.tf main.tf vars.tf
 ```
 -----------------------------------
-**Scrivere il file provider.tf**
-```bash
-nano provider.tf
-```
-**Inizializzare Terraform scaricando driver necessari**
+# Scrivere il file provider.tf
+Preparazione 
+1. Installa Terraform: Sul tuo WSL (o Linux).
+2. Crea la cartella di progetto: Una cartella pulita (es. lab-proxmox) per ogni progetto.
+3. Scrittura (I file .tf)Puoi chiamarli come vuoi, ma lo standard è:provider.tf: Dove dici a Terraform con chi parlare (Proxmox, AWS, Azure) e gli dai le chiavi (Token API).main.tf: Dove descrivi cosa vuoi creare (le VM, i dischi, la rete).
+4. I 3 Comandi Magici nel terminale, dentro la cartella dei file, esegui sempre questa sequenza:
+5. **terraform init** = Scarica i "driver" (i plugin) necessari per parlare con Proxmox.
+6. **terraform plan** = Ti mostra cosa farebbe senza toccare nulla.Legge il progetto e ti dice quanto costa e cosa rompe
+7. **terraform apply** = Esegue fisicamente i cambiamenti su Proxmox.
+
+## Inizializzare Terraform scaricando driver necessari
 
 ```bash
 terraform init
@@ -117,7 +123,8 @@ foto con scritte verdi vuol dire che ha funzionato!!
 
 ```bash
 nano provider.tf
-
+```
+```bash
 terraform {
   required_providers {
     proxmox = {
@@ -128,15 +135,18 @@ terraform {
 }
 
 provider "proxmox" {
-  pm_api_url          = "https://IP-PROXMOX:8006/api2/json"
-  pm_api_token_id     = "root@pam!terraform-token"
-  pm_api_token_secret = "TOKEN-API-GENERATO-PRIMA"
-  pm_tls_insecure     = true # Se non hai certificati SSL validi
-  pm_parallel         = 1   #IMPORTANTE SE NON DA ERRORE COI PERMESSI 
+  pm_api_url      = "https://192.168.1.53:8006/api2/json"
+  pm_user         = "enrico@pve"
+  pm_password     = "password"
+  pm_tls_insecure = true
+  pm_parallel     = 1
+
 }
 
+```
 
 ```
+## gestire permessi
 su gui proxmox, permessi
 1. root@pam permessi di / , gruppo admins
 2. permessi token API --aggiungi--> token id = terraform-token   utente root@pam , permessi administrator in /
@@ -151,12 +161,13 @@ resource "proxmox_vm_qemu" "jenkins_vm" {
   name        = "jenkins-ci"
   target_node = "Proxmox"
   vmid        = 101
-  clone       = "100"
+  clone       = "ubuntu-template"         #vuole nome,
   full_clone  = true
+  scsihw      = "virtio-scsi-pci"
 
   cores   = 2
   memory  = 4096
-  agent   = 1
+  agent   = 0
 
   disk {
     slot    = 0
@@ -164,7 +175,10 @@ resource "proxmox_vm_qemu" "jenkins_vm" {
     type    = "scsi"
     storage = "local-lvm"
   }
-
+  network {
+    model  = "virtio"
+    bridge = "vmbr0" # Verifica che il tuo bridge si chiami così (standard)
+  }
   os_type   = "cloud-init"
   ipconfig0 = "ip=192.168.1.91/24,gw=192.168.1.1"
 
@@ -179,12 +193,13 @@ resource "proxmox_vm_qemu" "runtime_vm" {
   name        = "app-runtime"
   target_node = "Proxmox"
   vmid        = 102
-  clone       = "100"
+  clone       = "ubuntu-template"
   full_clone  = true
+  scsihw      = "virtio-scsi-pci"
 
   cores   = 2
   memory  = 4096
-  agent   = 1
+  agent   = 0
 
   disk {
     slot    = 0      # <--- Deve essere una stringa completa
@@ -192,7 +207,10 @@ resource "proxmox_vm_qemu" "runtime_vm" {
     type    = "scsi"       
     storage = "local-lvm"
   }
-
+  network {
+    model  = "virtio"
+    bridge = "vmbr0" # Verifica che il tuo bridge si chiami così (standard)
+  }
   os_type   = "cloud-init"
   ipconfig0 = "ip=192.168.1.92/24,gw=192.168.1.1"
 
@@ -204,9 +222,23 @@ resource "proxmox_vm_qemu" "runtime_vm" {
 ```
 **testiamo main.tf**
 ```bash
-terraform plan
+terraform plan    # premi yes
 ```
+
+
 **diamo vita alle due vm**
 ```bash
 terraform apply
 ```
+Appena lanci il primo apply, Terraform crea un file chiamato terraform.tfstate.
+
+Nota bene: Quel file è la "memoria" di Terraform. Se domani cambi il numero di core nel main.tf e rilanci apply, Terraform legge lo stato, vede che la VM esiste già e invece di ricrearla, ne modifica solo i core.
+
+Un piccolo avvertimento
+L'unica cosa che Terraform non fa è configurare quello che c'è dentro la VM (installare database, app, o configurare file di sistema complessi) dopo che è stata accesa. Per quello useremo Ansible.
+
+Se da problemi è utile usare questo comando per vedere i log
+```bash
+TF_LOG=INFO terraform apply
+```
+
