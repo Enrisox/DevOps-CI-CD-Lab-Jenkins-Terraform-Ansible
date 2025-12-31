@@ -167,6 +167,7 @@ resource "proxmox_vm_qemu" "jenkins_vm" {
 
   cores   = 2
   memory  = 4096
+  balloon = 0
   agent   = 0
 
   disk {
@@ -177,7 +178,7 @@ resource "proxmox_vm_qemu" "jenkins_vm" {
   }
   network {
     model  = "virtio"
-    bridge = "vmbr0" # Verifica che il tuo bridge si chiami così (standard)
+    bridge = "vmbr0" 
   }
   os_type   = "cloud-init"
   ipconfig0 = "ip=192.168.1.91/24,gw=192.168.1.1"
@@ -212,7 +213,7 @@ resource "proxmox_vm_qemu" "runtime_vm" {
     bridge = "vmbr0" # Verifica che il tuo bridge si chiami così (standard)
   }
   os_type   = "cloud-init"
-  ipconfig0 = "ip=192.168.1.92/24,gw=192.168.1.1"
+  ipconfig0 = "ip=192.168.1.93/24,gw=192.168.1.1"
 
   ciuser     = "enrico"
   sshkeys    = <<EOF
@@ -390,7 +391,7 @@ Ora:
 WSL ✔️
 CMD ✔️
 
-🔵 OPZIONE 2 – RIUSA LA STESSA CHIAVE (consigliata)
+OPZIONE 2 – RIUSA LA STESSA CHIAVE (consigliata)
 
 Puoi dire a Windows di usare la chiave WSL.
 
@@ -402,3 +403,10 @@ ssh -i \\wsl$\Ubuntu\home\enrico\.ssh\id_ed25519 enrico@192.168.1.101
 Oppure copia la chiave WSL in:
 
 C:\Users\Enrico\.ssh\
+
+## disabilita accesso con password in ssh
+
+sudo nano /etc/ssh/sshd_config
+
+
+
