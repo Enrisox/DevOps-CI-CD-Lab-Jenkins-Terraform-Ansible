@@ -80,14 +80,18 @@ lab-ansible/
 ```bash
 nano inventory/hosts.ini
 ```
-[ci]
-IP
-[runtime]
-IP
+```bash
+[jenkins]
+ci ansible_host=192.168.1.7
+
+[runtime_group]
+runtime ansible_host=192.168.1.8
+
 [all:vars]
 ansible_user=enrico
 ansible_ssh_private_key_file=~/.ssh/id_ed25519
 ansible_python_interpreter=/usr/bin/python3
+```
 
 ### PLAYBOOK DI TEST
 
@@ -120,4 +124,206 @@ Ansible ha raggiunto entrambe le VM
 - Nessuna richiesta di password
 - Autenticazione corretta
 - Il modulo Ansible ping ha risposto
+
+# BOOTSTRAP BASE e NETWORK CONFIGURATION DELLE VM clonate
+
+Su ENTRAMBE le VM:
+
+- hostname coerente
+- pacchetti base
+- sudo senza password (per automazione)
+
+```bash
+nano playbooks/bootstrap.yml
+```
+
+```bash
+
+- name: Network & Hostname Bootstrap
+  hosts: all
+  become: true
+
+  vars:
+    net_interface: eth0
+    net_gateway: 192.168.1.1
+    net_dns: [1.1.1.1, 8.8.8.8]
+    host_ips:
+      ci: 192.168.1.7
+      runtime: 192.168.1.8
+
+  tasks:
+    # 1. Configurazioni di sistema (mentre la rete è ancora quella vecchia)
+    - name: Set hostname
+      ansible.builtin.hostname:
+        name: "{{ inventory_hostname }}"
+
+    - name: Ensure sudo without password for enrico
+      ansible.builtin.copy:
+        dest: /etc/sudoers.d/enrico
+        content: "enrico ALL=(ALL) NOPASSWD:ALL\n"
+        mode: "0440"
+
+    - name: Install base packages
+      ansible.builtin.apt:
+        name:
+          - ca-certificates
+          - curl
+          - git
+          - gnupg
+          - lsb-release
+        state: present
+        update_cache: yes
+
+    # 2. Prepariamo il file di rete (non lo applichiamo ancora)
+    - name: Configure netplan
+      ansible.builtin.copy:
+        dest: /etc/netplan/01-ansible.yaml
+        owner: root
+        group: root
+        mode: '0644'
+        content: |
+          network:
+            version: 2
+            renderer: networkd
+            ethernets:
+              {{ net_interface }}:
+                dhcp4: no
+                addresses:
+                  - "{{ host_ips[inventory_hostname] }}/24"
+                routes:
+                  - to: default
+                    via: "{{ net_gateway }}"
+                nameservers:
+                  addresses: {{ net_dns | to_json }}
+
+     #3. ULTIMO STEP: Cambiamo l'IP
+    - name: Apply netplan (Il server cambierà IP e la connessione cadrà)
+      ansible.builtin.shell: "netplan apply"
+      async: 5
+      poll: 0```
+
+le due vm avevano già hostname fissato durante creazione con terraform dal clone 100
+Used Ansible to enforce system state idempotently, including hostnames and sudo policies, regardless of initial VM configuration.
+
+
+```bash
+ansible-playbook -i inventory/hosts.ini playbooks/network-bootstrap.yml
+```
+
+**Questo è Infrastructure as Code**
+
+## Per problematiche con chiavi SSH, da WSL terminal:
+
+```bash
+ssh-keygen -R 192.168.1.x
+ssh-keyscan -H 192.168.1.x >> ~/.ssh/known_hosts
+```
+
+## STEP B
+
+Su ENTRAMBE le VM:
+
+- installare Docker Engine
+- installare Docker Compose plugin
+- permettere a enrico di usare Docker senza sudo
+
+```bash
+nano playbooks/install-docker.yml
+```
+```bash
+- name: Install Docker
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Remove old Docker packages
+      ansible.builtin.apt:
+        name:
+          - docker
+          - docker-engine
+          - docker.io
+          - containerd
+          - runc
+        state: absent
+
+    - name: Install Docker prerequisites
+      ansible.builtin.apt:
+        name:
+          - ca-certificates
+          - curl
+        state: present
+        update_cache: yes
+
+    - name: Add Docker GPG key
+      ansible.builtin.shell: |
+        mkdir -p /etc/apt/keyrings
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+      args:
+        creates: /etc/apt/keyrings/docker.gpg
+
+    - name: Add Docker repository
+      ansible.builtin.shell: |
+        echo \
+          "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
+          https://download.docker.com/linux/ubuntu \
+          $(lsb_release -cs) stable" \
+          > /etc/apt/sources.list.d/docker.list
+      args:
+        creates: /etc/apt/sources.list.d/docker.list
+
+    - name: Install Docker Engine
+      ansible.builtin.apt:
+        name:
+          - docker-ce
+          - docker-ce-cli
+          - containerd.io
+          - docker-buildx-plugin
+          - docker-compose-plugin
+        state: present
+        update_cache: yes
+
+    - name: Ensure Docker service is running
+      ansible.builtin.service:
+        name: docker
+        state: started
+        enabled: true
+
+    - name: Add enrico to docker group
+      ansible.builtin.user:
+        name: enrico
+        groups: docker
+        append: yes
+```
+**ESEGUI PLAYBOOK DOCKER**
+```bash
+ansible-playbook -i inventory/hosts.ini playbooks/install-docker.yml
+```
+
+Terraform + Proxmox:
+
+crea VM
+
+collega NIC
+
+NON gestisce netplan dentro la VM
+
+💥 Terraform NON entra nel sistema operativo
+💥 Terraform NON sa se l’interfaccia si chiama eth0 o ens18
+
+👉 quello è Configuration Management
+👉 quindi: Ansible
+
+```bash
+inventory/
+  hosts.ini
+group_vars/
+  all.yml
+host_vars/
+  ci.yml
+  runtime.yml
+playbooks/
+  bootstrap.yml
+  network.yml   
+  docker.yml
+```
 
