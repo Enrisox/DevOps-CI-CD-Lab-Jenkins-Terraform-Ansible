@@ -290,7 +290,7 @@ nano playbooks/install-docker.yml
 
     - name: Add enrico to docker group
       ansible.builtin.user:
-        name: enrico
+        name: userX
         groups: docker
         append: yes
 ```
@@ -326,4 +326,20 @@ playbooks/
   network.yml   
   docker.yml
 ```
+# creazione ansible.cfg
+```bash
+nano ansible.cfg
+```
+```bash
+[defaults]
+inventory = inventory/hosts.ini
+remote_user = userX
+```
+**verifico con :**
+```bash
+ansible all -i inventory/hosts.ini -a "docker ps"
+```
 
+- Automazione: ho lanciato il playbook per installare Docker Engine, CLI e i plugin di Compose su entrambi i server contemporaneamente.
+- Permessi: ho aggiunto **userX** al gruppo docker, permettendoti di gestire i container senza sudo.
+- Verifica: ho  confermato con Ansible che Docker è attivo e risponde su entrambi i nodi.
