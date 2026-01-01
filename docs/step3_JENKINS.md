@@ -94,3 +94,66 @@ ansible ci -a "cat /home/enrico/jenkins_home/secrets/initialAdminPassword"
 - Configureremo la macchina .8 dentro l'interfaccia di Jenkins.
 - Faremo un test: chiederemo a Jenkins di lanciare un comando sulla .8 per vedere se "ubbidisce".
 
+Ora faremo in modo che il "Capocantiere" (Jenkins sulla .7) possa dare ordini all' "Operaio" (Runtime sulla .8). Per farlo, useremo una chiave SSH.
+
+Il trucco è questo: genereremo la chiave sulla macchina .7 (dentro la cartella di Jenkins) e la copieremo sulla macchina .8.
+
+1. Genera la chiave SSH sul server Jenkins
+Lancia questo comando dal tuo WSL. Useremo Ansible per dire alla macchina .7 di creare una chiave proprio nella cartella che abbiamo mappato per Jenkins:
+
+
+```bash
+ansible ci -m shell -a "ssh-keygen -t ed25519 -f /home/enrico/jenkins_home/jenkins_key -N ''"
+```
+2. Autorizza Jenkins sulla macchina Runtime
+Ora dobbiamo prendere la "chiave pubblica" appena creata e metterla tra le chiavi autorizzate della macchina .8. Invece di fare copia-incolla manuale, facciamo tutto con un colpo solo:
+
+```bash
+# 1. Leggiamo la chiave pubblica dalla .7
+PUBLIC_KEY=$(ansible ci -a "cat /home/enrico/jenkins_home/jenkins_key.pub" | grep ssh-ed25519)
+
+# 2. La aggiungiamo alla .8 (Runtime)
+ansible runtime -m authorized_key -a "user=enrico key='$PUBLIC_KEY'"
+```
+
+## sulla macchina runtime
+
+Sul terminale della Vm runtime ho installato Java con questi comandi:
+
+
+```bash
+sudo apt update                      #aggiorna i pacchetti
+sudo apt install default-jre -y        #Installa Java (JRE)
+java -version                     #verifica l'installazione:
+```
+
+## creazione nodo da interfaccia jenkins http://ip_VM_Jenkins(CI)
+
+
+1. Vai su Gestisci Jenkins (Manage Jenkins) > Nodes.
+2. Clicca su + New Node (Nuovo Nodo) a sinistra.
+3. Inserisci il nome runtime-node, seleziona Permanent Agent (Agente permanente) e clicca su Create.
+4. Remote root directory: Scrivi /home/enrico/jenkins (la cartella dove Jenkins lavorerà sul nodo).
+5. Labels: Scrivi runtime (serve per dire ai futuri lavori/job di girare proprio qui).
+6. Launch method: Seleziona Launch agents via SSH.
+7. Host: IP statico della VM runtime: es: 192.168.1.8.
+
+**Credentials:**
+
+1. Clicca su Add > Jenkins.
+2. Kind: Seleziona SSH Username with private key.
+3. Username: enrico.
+4. Private Key: Seleziona Enter directly, clicca su Add e incollato la chiave privata che leggo dal terminale con il comando ansible.
+5. Clicca su Add in fondo al pop-up.
+6. seleziona la credenziale appena creata dal menu a tendina Credentials.
+
+```bash
+ansible ci -a "cat /home/enrico/jenkins_home/jenkins_key"
+```
+
+Host Key Verification Strategy: Cambia in Non verifying Verification Strategy (per saltare il controllo manuale dell'impronta SSH).
+
+**Save**
+
+
+Se non si connette da solo, cliccare sul tasto blu Launch agent.
