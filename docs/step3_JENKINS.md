@@ -155,5 +155,5 @@ Host Key Verification Strategy: Cambia in Non verifying Verification Strategy (p
 
 **Save**
 
+Se nei log del nodo c'è **"Agent successfully connected and online"** è funzionante.
 
-Se non si connette da solo, cliccare sul tasto blu Launch agent.
