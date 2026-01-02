@@ -4,6 +4,24 @@ This repository contains a self-hosted DevOps lab built to practice real-world C
 
 The entire environment is deployed on Proxmox and automated with Terraform and Ansible, while application delivery is handled through Jenkins, Docker, and AWS ECR.
 
+🖥️ Hardware Setup
+
+Host machine
+Lenovo E73 
+Quad-core CPU @ 2.9 GHz
+8 GB DDR3 RAM
+
+⚙️ **Technologies Used**
+
+- Proxmox VE
+- Terraform
+- Ansible
+- Jenkins
+- Docker
+- AWS ECR
+- Linux (Ubuntu)
+
+
 🧱 **Architecture**
 
 1. Proxmox VE
@@ -29,15 +47,6 @@ The entire environment is deployed on Proxmox and automated with Terraform and A
 7. Jenkins does not deploy via SSH.
 8. The pipeline runs directly on the agent node, following a production-like model.
 
-⚙️ **Technologies Used**
-
-- Proxmox VE
-- Terraform
-- Ansible
-- Jenkins
-- Docker
-- AWS ECR
-- Linux (Ubuntu)
 
 🎯 **Learning Objectives**
 
