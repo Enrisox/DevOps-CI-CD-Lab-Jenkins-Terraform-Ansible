@@ -121,7 +121,6 @@ pipeline {
         AWS_ACCOUNT_ID = '266735824805'
         AWS_REGION     = 'eu-west-1'
         REPO_NAME_ECR  = 'quiz-app'
-        // URL CodeCommit che mi hai fornito
         CODECOMMIT_URL = 'https://git-codecommit.eu-west-1.amazonaws.com/v1/repos/AWS_QuizAPP'
         // --------------------------
         
@@ -132,7 +131,6 @@ pipeline {
         stage('Checkout from CodeCommit') {
             steps {
                 echo 'Download del codice sorgente da CodeCommit...'
-                // Scarica i file fisici (requirements.txt, cartella tests, ecc.)
                 git url: "${CODECOMMIT_URL}", branch: 'main', credentialsId: 'codecommit-creds'
             }
         }
@@ -140,7 +138,6 @@ pipeline {
         stage('Unit Tests') {
             steps {
                 echo 'Esecuzione test su codice sorgente...'
-                // Ora i file sono presenti sul nodo, quindi venv e pytest funzioneranno
                 sh '''
                     python3 -m venv venv
                     . venv/bin/activate
@@ -174,7 +171,6 @@ pipeline {
             steps {
                 echo 'Aggiornamento container sul nodo runtime...'
                 sh "docker rm -f quiz-app-container || true"
-                // Avvio con la porta corretta (8080 host -> 5000 container)
                 sh "docker run -d --name quiz-app-container -p 8080:5000 ${ECR_URL}/${REPO_NAME_ECR}:latest"
             }
         }
@@ -182,10 +178,10 @@ pipeline {
 
     post {
         success {
-            echo "✅ Deploy completato con successo attingendo da CodeCommit ed ECR!"
+            echo "Deploy completato con successo attingendo da CodeCommit ed ECR!"
         }
         failure {
-            echo "❌ Errore nella pipeline. Verifica se il fallimento è nei Test o nella Scansione Trivy."
+            echo "Errore nella pipeline. Verifica se il fallimento è nei Test o nella Scansione Trivy."
         }
     }
 }
@@ -254,7 +250,38 @@ environment {
 Evita hardcoding nei comandi
 Pipeline più leggibile e manutenibile
 
-**3)STAGE ECR LOGIN**
+## 3)Checkout from CodeCommit
+
+1. Jenkins clona il repository AWS CodeCommit
+2. Il codice viene copiato fisicamente sul nodo runtime
+
+**Ora Jenkins ha accesso a:**
+
+- requirements.txt
+- cartella tests/
+- codice applicativo
+
+## 4)Unit Tests
+
+**Nella mia repository c'è il file /tests/test_app.py per i tests con pytest**
+```bash
+import sys
+from pathlib import Path
+ROOT = Path(__file__).resolve().parent.parent
+sys.path.append(str(ROOT))
+
+from app import app
+
+def test_index_returns_200():
+    client = app.test_client()
+    response = client.get("/")
+    assert response.status_code == 200
+```
+- Crea un virtual environment Python
+- Installa le dipendenze
+- Esegue i test con pytest
+- 
+**5)STAGE ECR LOGIN**
 ```bash
 
 Stage: ECR Login
@@ -273,18 +300,30 @@ stage('ECR Login') {
 👉 Sicurezza corretta
 👉 Best practice AWS
 
-**4)STAGE PULL IMAGE**
+**4)Pull & Scan Image**
 ```bash
-docker pull 2667...amazonaws.com/quiz-app:latest
+stage('Pull & Scan Image') {
+    steps {
+        echo "Download immagine da ECR..."
+        sh "docker pull ${ECR_URL}/${REPO_NAME_ECR}:latest"
+
+        echo 'Scansione sicurezza con Trivy...'
+        sh "docker run ... trivy image ..."
+    }
+}
 ```
-Scarica l’ultima versione dell’immagine Docker dal registry ECR.
 
 **5)Stage: Deploy Container**
 
 ```bash
-docker rm -f quiz-app-container || true
+stage('Deploy') {
+    steps {
+        sh "docker rm -f quiz-app-container || true"
+        sh "docker run -d --name quiz-app-container -p 8080:5000 ${ECR_URL}/${REPO_NAME_ECR}:latest"
+    }
+}
 ```
-Ferma e rimuove il container esistente
-👉 Deploy idempotente
+- Ferma e rimuove il container esistente
+- Deploy idempotente
 
-
+Il deploy è idempotente perché ogni esecuzione rimuove eventuali istanze esistenti e riporta il sistema allo stato desiderato, indipendentemente dallo stato iniziale.
