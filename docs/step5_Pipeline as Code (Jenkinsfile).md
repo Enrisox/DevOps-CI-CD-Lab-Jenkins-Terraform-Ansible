@@ -96,59 +96,96 @@ Dovresti vedere qualcosa come aws-cli/2.x.x. Se lo vedi, il nodo è finalmente p
 6. Secret Access Key: Incolla la tua chiave segreta lunga.
 7. Salva credential
 
-## Creo una pipeline che pulla un' image dalla mia repo su ECR in AWS 
+
+## Creo una pipeline che pulla un' image dalla mia repo su CodeCommit in AWS 
+
+Prepara le credenziali per CodeCommit
+Per permettere a Jenkins di leggere da CodeCommit, hai bisogno di credenziali Git specifiche:
+
+1. Vai in IAM su AWS > Utenti > seleziona il tuo utente jenkins-runtime.
+2. Vai nella scheda Security credentials (Credenziali di sicurezza).
+3. Scendi fino a HTTPS Git credentials for AWS CodeCommit e clicca su Generate credentials.
+4. Salva lo Username e la Password.
+5. Su Jenkins, aggiungi queste credenziali (tipo Username with password) con l'ID codecommit-creds
+
+
+
 
 
 ```bash
 pipeline {
-    agent { label 'runtime' } // Assicurati che il tuo nodo "runtime" sia online
+    agent { label 'runtime' }
 
     environment {
-        // --- DATI REALI DAL TUO ECR ---
-        AWS_ACCOUNT_ID = '***********'
+        // --- CONFIGURAZIONE AWS ---
+        AWS_ACCOUNT_ID = '266735824805'
         AWS_REGION     = 'eu-west-1'
-        REPO_NAME      = 'quiz-app'
-        // ------------------------------
+        REPO_NAME_ECR  = 'quiz-app'
+        // URL CodeCommit che mi hai fornito
+        CODECOMMIT_URL = 'https://git-codecommit.eu-west-1.amazonaws.com/v1/repos/AWS_QuizAPP'
+        // --------------------------
         
         ECR_URL = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
     }
 
     stages {
+        stage('Checkout from CodeCommit') {
+            steps {
+                echo 'Download del codice sorgente da CodeCommit...'
+                // Scarica i file fisici (requirements.txt, cartella tests, ecc.)
+                git url: "${CODECOMMIT_URL}", branch: 'main', credentialsId: 'codecommit-creds'
+            }
+        }
+
+        stage('Unit Tests') {
+            steps {
+                echo 'Esecuzione test su codice sorgente...'
+                // Ora i file sono presenti sul nodo, quindi venv e pytest funzioneranno
+                sh '''
+                    python3 -m venv venv
+                    . venv/bin/activate
+                    pip install -r requirements.txt
+                    pytest tests
+                '''
+            }
+        }
+
         stage('ECR Login') {
             steps {
-                echo "Autenticazione su AWS ECR in corso ..."
-                // Usa le credenziali 'aws-ecr-creds' che hai salvato prima
+                echo 'Autenticazione su AWS ECR...'
                 withCredentials([[ $class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-ecr-creds' ]]) {
                     sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_URL}"
                 }
             }
         }
 
-        stage('Pull Image') {
+        stage('Pull & Scan Image') {
             steps {
-                echo "Download dell'immagine ${REPO_NAME}:latest..."
-                sh "docker pull ${ECR_URL}/${REPO_NAME}:latest"
+                echo "Download immagine da ECR..."
+                sh "docker pull ${ECR_URL}/${REPO_NAME_ECR}:latest"
+                
+                echo 'Scansione sicurezza con Trivy...'
+                // Blocca la pipeline se trova vulnerabilità critiche nell'immagine
+                sh "docker run --rm -v /var/run/docker.sock:/var/run/docker.sock aquasec/trivy image --severity HIGH,CRITICAL --exit-code 1 ${ECR_URL}/${REPO_NAME_ECR}:latest"
             }
         }
 
-        stage('Deploy Container') {
+        stage('Deploy') {
             steps {
-                echo "Avvio dell'applicazione sul nodo runtime..."
-                // Pulizia vecchi container per evitare conflitti
+                echo 'Aggiornamento container sul nodo runtime...'
                 sh "docker rm -f quiz-app-container || true"
-                
-                // Lancio del container sulla porta 8080 
-                sh "docker run -d --name quiz-app-container -p 8080:5000 ${ECR_URL}/${REPO_NAME}:latest"
+                // Avvio con la porta corretta (8080 host -> 5000 container)
+                sh "docker run -d --name quiz-app-container -p 8080:5000 ${ECR_URL}/${REPO_NAME_ECR}:latest"
             }
         }
     }
 
     post {
         success {
-            echo "Deploy riuscito! L'app è disponibile su http://IP-VM-RUNTIME:8080"
+            echo "✅ Deploy completato con successo attingendo da CodeCommit ed ECR!"
         }
         failure {
-            echo "Il deploy è fallito. Controlla il 'Console Output' per i dettagli."
+            echo "❌ Errore nella pipeline. Verifica se il fallimento è nei Test o nella Scansione Trivy."
         }
     }
 }
