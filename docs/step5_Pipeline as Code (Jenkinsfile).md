@@ -7,7 +7,9 @@
 5. Seleziona Pipeline e clicca su OK.
 6. Scorri fino in fondo alla sezione Pipeline e incolla questo codice:
 7. Clicca su compila ora a SX.
-8. 
+
+**Prima pipeline di prova**
+
 ```bash
 pipeline {
     agent { label 'runtime' } // Forza l'esecuzione sul tuo nodo .8
@@ -29,16 +31,16 @@ pipeline {
 }
 ```
 
-Java: Se Jenkins è online, sappiamo che c'è, ma questo conferma la versione.
-Docker Version: Se questo comando fallisce, il tuo script di bootstrap non ha installato Docker.
-Groups: Se nell'output non vedi la parola docker, Jenkins non avrà i permessi per lanciare container e dovrai aggiungerlo al gruppo.
+- Java: Se Jenkins è online, sappiamo che c'è, ma questo conferma la versione.
+- Docker Version: Se questo comando fallisce, il tuo script di bootstrap non ha installato Docker.
+- Groups: Se nell'output non vedi la parola docker, Jenkins non avrà i permessi per lanciare container e dovrai aggiungerlo al gruppo.
 
 ## Pipeline di Continuous Deployment (CD)
 Visto che il nodo è pronto, creiamo una pipeline che simula un vero deploy. Questa pipeline pulirà eventuali vecchi container e lancerà un'applicazione web.
 
 **installare AWS CLI v2 sul nodo runtime**
 
-Per scompattare l'installatore di AWS, ti serve unzip. Eseguilo sul terminale del nodo:
+Per scompattare l'installatore di AWS, serve **unzip**. Eseguilo sul terminale del nodo:
 
 ```bash
 sudo apt update && sudo apt install unzip curl -y
