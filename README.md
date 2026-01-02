@@ -11,7 +11,7 @@ Lenovo E73
 Quad-core CPU @ 2.9 GHz
 8 GB DDR3 RAM
 
-⚙️ **Technologies Used**
+**Technologies Used**
 
 - Proxmox VE 
 - Terraform 
