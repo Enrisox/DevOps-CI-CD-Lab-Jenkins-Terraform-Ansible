@@ -10,6 +10,7 @@ The entire environment is deployed on Proxmox and automated with Terraform and A
 - Lenovo E73 
 - Quad-core CPU @ 2.9 GHz
 - 8 GB DDR3 RAM
+- 250 GB SSD
 
 ## Technologies Used
 
