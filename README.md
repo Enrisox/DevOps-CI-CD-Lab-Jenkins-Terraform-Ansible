@@ -6,10 +6,10 @@ The entire environment is deployed on Proxmox and automated with Terraform and A
 
 ## Hardware Setup
 
-Host machine
-Lenovo E73 
-Quad-core CPU @ 2.9 GHz
-8 GB DDR3 RAM
+**Host machine**
+- Lenovo E73 
+- Quad-core CPU @ 2.9 GHz
+- 8 GB DDR3 RAM
 
 ## Technologies Used
 
