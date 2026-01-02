@@ -13,7 +13,7 @@ The entire environment is deployed on Proxmox and automated with Terraform and A
    Ansible bootstraps OS, networking, Docker, and users
 3. CI/CD
 
-**Jenkins Controller**: Manages pipelines, jobs, and credentials
+**Jenkins Controller**: Manages pipelines, jobs, and credentials <br>
 **Jenkins Agent** (runtime node): Runs Docker and executes deployment steps locally
 
 4. Container Registry: AWS ECR stores application Docker images
