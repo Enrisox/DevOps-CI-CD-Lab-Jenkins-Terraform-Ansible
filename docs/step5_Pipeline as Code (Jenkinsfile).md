@@ -101,11 +101,11 @@ Dovresti vedere qualcosa come aws-cli/2.x.x. Se lo vedi, il nodo è finalmente p
 
 ```bash
 pipeline {
-    agent { label 'runtime' } // Assicurati che il tuo nodo 192.168.1.8 sia online
+    agent { label 'runtime' } // Assicurati che il tuo nodo "runtime" sia online
 
     environment {
         // --- DATI REALI DAL TUO ECR ---
-        AWS_ACCOUNT_ID = '266735824805'
+        AWS_ACCOUNT_ID = '***********'
         AWS_REGION     = 'eu-west-1'
         REPO_NAME      = 'quiz-app'
         // ------------------------------
@@ -116,7 +116,7 @@ pipeline {
     stages {
         stage('ECR Login') {
             steps {
-                echo "Autenticazione su AWS ECR in corso (Irlanda)..."
+                echo "Autenticazione su AWS ECR in corso ..."
                 // Usa le credenziali 'aws-ecr-creds' che hai salvato prima
                 withCredentials([[ $class: 'AmazonWebServicesCredentialsBinding', credentialsId: 'aws-ecr-creds' ]]) {
                     sh "aws ecr get-login-password --region ${AWS_REGION} | docker login --username AWS --password-stdin ${ECR_URL}"
@@ -137,7 +137,7 @@ pipeline {
                 // Pulizia vecchi container per evitare conflitti
                 sh "docker rm -f quiz-app-container || true"
                 
-                // Lancio del container sulla porta 8080 (o quella usata dalla tua app)
+                // Lancio del container sulla porta 8080 
                 sh "docker run -d --name quiz-app-container -p 8080:5000 ${ECR_URL}/${REPO_NAME}:latest"
             }
         }
@@ -145,7 +145,7 @@ pipeline {
 
     post {
         success {
-            echo "Deploy riuscito! L'app è disponibile su http://192.168.1.8:8080"
+            echo "Deploy riuscito! L'app è disponibile su http://IP-VM-RUNTIME:8080"
         }
         failure {
             echo "Il deploy è fallito. Controlla il 'Console Output' per i dettagli."
@@ -159,4 +159,95 @@ pipeline {
 - Segretezza delle Credenziali: Le tue chiavi AWS (AKIA...) non appaiono mai nel log di Jenkins né nello script. Sono protette dal plugin Credentials che le "maschera" (vedresti solo **** nei log).
 - Principio del Minimo Privilegio: L'utente IAM che abbiamo creato ha solo il permesso ReadOnly. Anche se qualcuno rubasse quelle chiavi, potrebbe solo scaricare le immagini, ma non potrebbe cancellare i tuoi database o creare nuove macchine costose su AWS.
 - Autenticazione Effimera: Usando get-login-password, non salviamo la password di Docker sul disco in modo permanente. Il login è valido solo per quella specifica sessione di lavoro.
+
+1)**BLOCCO AGENT**
+
+**agent { label 'runtime' }** in una Jenkins Pipeline significa: “Questo stage (o l’intera pipeline) deve girare su un agent Jenkins che ha l’etichetta runtime”, cioè su una macchina registrata come worker (nel tuo caso la VM 192.168.1.8), non sul controller. In Jenkins il controller orchestra e schedula, mentre l’agent esegue davvero comandi, build, docker, ecc.
+
+**Modello “SSH da controller” vs “agent runtime”**
+
+**Modello SSH (anti-pattern tipico)**
+Il controller esegue uno step tipo ssh runtime "docker pull ... && docker compose up -d".
+
+Quindi il controller deve avere:
+
+chiavi SSH/credenziali per entrare in runtime,
+rete aperta verso runtime (SSH in ingresso sul runtime, firewall più permissivo),
+logica di deploy “remota” fragile (timeout SSH, chiavi, jump host, ecc.).
+Problema tecnico principale: stai trasformando il controller in una macchina “che entra nei server”
+
+**Modello agent**
+La VM runtime esegue un processo “agent” Jenkins.
+
+- L’agent si connette al controller e resta in ascolto di job (concetto: pull model / connessione uscente).
+- Quando nel Jenkinsfile metti agent { label 'runtime' }, Jenkins:
+- trova un agent online con quell’etichetta e prepara workspace lì, invia lo script dei passaggi,
+- i comandi (es. docker pull, docker compose up) girano localmente sulla VM runtime.
+
+**Separazione netta dei ruoli (control plane vs data plane)**
+- **Controller**: decisioni, scheduling, UI, credenziali centralizzate, audit pipeline.
+- **Runtime agent**: esecuzione dei comandi e accesso alle risorse locali (socket Docker, filesystem, rete).
+
+### Scalabilità e ripetibilità
+Con label:
+
+- aggiungi altri runtime node (es. runtime-1, runtime-2) con la stessa label e Jenkins bilancia.
+- se domani passi da una VM a tre VM o a un cluster, l’idea rimane identica: il Jenkinsfile non deve diventare un groviglio di ssh
+
+**Sposto l’esecuzione sul nodo target via agent, uso connessioni uscenti e riduco la necessità di credenziali di accesso remoto; il controllo resta nel sistema CI con audit e permessi.**
+
+2)**BLOCCO ENVIROMENT**
+```bash
+
+environment {
+    AWS_ACCOUNT_ID = '266735824805'
+    AWS_REGION     = 'eu-west-1'
+    REPO_NAME      = 'quiz-app'
+    ECR_URL = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
+}
+```
+
+**Definisce variabili riutilizzabili:**
+
+- Account AWS
+- Regione (Irlanda)
+- Nome repo ECR
+- URL completo del registry
+
+Evita hardcoding nei comandi
+Pipeline più leggibile e manutenibile
+
+**3)STAGE ECR LOGIN**
+```bash
+
+Stage: ECR Login
+stage('ECR Login') {
+    withCredentials([...]) {
+        sh "aws ecr get-login-password | docker login ..."
+    }
+}
+```
+
+1. Usa credenziali AWS salvate in Jenkins (aws-ecr-creds)
+2. Recupera un token temporaneo da ECR
+3. Fa login Docker verso AWS ECR
+
+👉 Non salvi password in chiaro
+👉 Sicurezza corretta
+👉 Best practice AWS
+
+**4)STAGE PULL IMAGE**
+```bash
+docker pull 2667...amazonaws.com/quiz-app:latest
+```
+Scarica l’ultima versione dell’immagine Docker dal registry ECR.
+
+**5)Stage: Deploy Container**
+
+```bash
+docker rm -f quiz-app-container || true
+```
+Ferma e rimuove il container esistente
+👉 Deploy idempotente
+
 
