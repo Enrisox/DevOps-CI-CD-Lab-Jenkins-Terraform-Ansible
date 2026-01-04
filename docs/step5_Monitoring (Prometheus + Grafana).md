@@ -123,3 +123,22 @@ Ti chiederà di cambiare password:
 
 ## Collegare Prometheus a Grafana
 
+1. Nella colonna di sinistra, clicca sull'icona dell'ingranaggio o cerca "Connections" -> "Data Sources".
+2. Clicca su "Add data source".
+3. Seleziona Prometheus.
+4. Nel campo URL, scrivi l'indirizzo della VM dove gira Prometheus (la stessa su cui sei ora): http://192.168.1.7:9090
+5. Scorri in fondo e clicca su "Save & Test".
+6. Deve apparire un messaggio verde: "Data source is working".
+
+
+**Esistono dashboard già fatte dalla community. La più famosa per il Node Exporter è la 1860.**
+
+- Nel menu data source, in quella appena aggiunta.
+- Clicca su "New" e poi su "Import".
+- Nel campo "Import via grafana.com", scrivi  1860 e clicca su "Load".  ( 1860 è una dashboard pre-creata e famosa per le sue qualità di monitoraggio server Linux e node exporter( Node Exporter è un “sensore” che gira su un server e legge lo stato del sistema
+(CPU, RAM, disco, rete…) e lo rende leggibile a Prometheus.
+- Dagli un nome (es. "Monitoraggio VM Proxmox").
+- Clicca su "Import".
+
+
+
