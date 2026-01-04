@@ -26,3 +26,100 @@ sul mio PC Host , da ubuntu terminal che è il mio Ansible Control Node
         network_mode: host
 
 ```
+
+2. lancio il comando standard per installare il sensore sulla VM di Runtime (102)
+
+```yaml
+ansible-playbook -i inventory/hosts.ini playbooks/monitoring.yml
+```
+
+3. http://192.168.1.8:9100/metrics
+
+## Installo Prometheus + Grafana sulla VM CI (101)
+Ora dobbiamo fare in modo che la VM 101 vada a leggere questi dati dalla VM 102 e ce li mostri in un grafico.
+
+Procediamo creando un playbook che configurerà tutto sulla VM 101.
+
+```yaml
+nano ~/lab-ansible/prometheus.yml
+```
+
+```yaml
+global:
+  scrape_interval: 15s # Frequenza di campionamento
+
+scrape_configs:
+  - job_name: 'node_exporter'
+    static_configs:
+      - targets: ['192.168.1.8:9100']
+```
+
+## Creo il Playbook playbooks/setup_monitoring_server.yml
+Questo playbook farà tre cose sulla VM Jenkins 101:
+
+- Creerà una cartella per i dati.
+- Caricherà il file prometheus.yml appena creato.
+- Avvierà i container di Prometheus e Grafana.
+
+
+```yaml
+nano playbooks/setup_monitoring_server.yml
+```
+
+
+```yaml
+---
+- name: Setup Monitoring Server (Prometheus & Grafana)
+  hosts: jenkins
+  become: true
+  tasks:
+    - name: Create Prometheus config directory
+      ansible.builtin.file:
+        path: /etc/prometheus
+        state: directory
+        mode: '0755'
+
+    - name: Copy Prometheus configuration
+      ansible.builtin.copy:
+        src: ../prometheus.yml
+        dest: /etc/prometheus/prometheus.yml
+        mode: '0644'
+
+    - name: Run Prometheus Container
+      community.docker.docker_container:
+        name: prometheus
+        image: prom/prometheus:latest
+        state: started
+        restart_policy: always
+        volumes:
+          - /etc/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+        published_ports:
+          - "9090:9090"
+
+    - name: Run Grafana Container
+      community.docker.docker_container:
+        name: grafana
+        image: grafana/grafana:latest
+        state: started
+        restart_policy: always
+        published_ports:
+          - "3000:3000"
+```
+
+3. Eseguo il Playbook **setup_monitoring_server.yml**
+```yaml
+ansible-playbook -i inventory/hosts.ini playbooks/setup_monitoring_server.yml
+```
+
+## Primo Accesso a Grafana
+Apri il browser e vai su: http://192.168.1.7:3000
+
+Login:
+
+User: admin
+Password: admin
+
+Ti chiederà di cambiare password:
+
+## Collegare Prometheus a Grafana
+
