@@ -1,8 +1,7 @@
-# Monitoring
+# Monitoring a VM with Prometheus and Grafana
 
-VM 101 (Jenkins): Sarà il nostro "Centro di Comando". Qui faremo girare Prometheus (il database dei dati) e Grafana (i grafici).
-
-VM 102 (Runtime): Sarà la "Sorgente". Qui installeremo un container chiamato node-exporter che monitora CPU, RAM e Rete.
+- VM 101 (Jenkins): Sarà il nostro "Centro di Comando". Qui faremo girare Prometheus (il database dei dati) e Grafana (i grafici).
+- VM 102 (Runtime): Sarà la "Sorgente". Qui installeremo un container chiamato node-exporter che monitora CPU, RAM e Rete.
 
 ## Installare il "Sensore" sulla VM runtime via Ansible 
 
