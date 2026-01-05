@@ -1,9 +1,12 @@
-# Installazione Proxmox 
+# Proxmox Installation & Initial Setup
 
-1) installato proxmox da chiavetta usb contenete ISO , F1 per entrare nel Bios e impostare chiavetta usb come metodo di boot principale.
-2) installare graphical mode, scegli ip statico e hostname e password di root..
-3) apt update e apt upgrade : darà errore per colpa della licenza mancante quindi bisogna cancellare o commentare contenuto sia di apt/sources.list.d/ceph.sources che di  /etc/apt/sources.list.d/pve-enterprise.sources
-4) nano /etc/apt/sources.list.d/pve-no-subscription.sources   e incolla dentro
+1. **Hardware Boot**: I installed Proxmox using a USB flash drive containing the ISO image. I accessed the BIOS by pressing F1 and configured the USB drive as the primary boot device.
+2. **System Configuration**: I proceeded with the graphical installation mode, where I assigned a static IP address, defined the system hostname, and set the root password.
+3. **Repository Cleanup**: After the first boot, I ran apt update and apt upgrade. To resolve errors caused by the lack of a commercial license, I deleted the enterprise-only repository entries in both /etc/apt/sources.list.d/ceph.sources and /etc/apt/sources.list.d/pve-enterprise.sources.
+4. **No-Subscription Repository**: I then configured the community-supported repository by creating a new file with nano /etc/apt/sources.list.d/pve-no-subscription.sources and adding the appropriate repository URL to enable system updates.
+```bash
+nano /etc/apt/sources.list.d/pve-no-subscription.sources 
+```
 
 ```bash
 Types: deb
@@ -12,78 +15,103 @@ Suites: trixie
 Components: pve-no-subscription
 Architectures: amd64
 ```
+## User Management & VM Template Creation
 
-5)aggiungiamo nuovo utente sul server con comando linux adduser e aggiungiamo utente con stesso nome e password anche sulla gui di proxmox , raggiungibile a ip:8006
-6)creo vm ubuntu server con 1 core e 2 gb di ram.. 
-7)finita istallazione procedo a configurazione rete.. 
+1. **User Synchronization**: I created a new system user using the adduser command. To ensure seamless access, I replicated the same username and password within the Proxmox GUI (accessible via https://[IP]:8006).
+2. **VM Provisioning**: I provisioned a new Ubuntu Server VM, allocating 1 CPU core and 2 GB of RAM to meet the application's runtime requirements.
+3. **Network Setup**: After the base installation, I manually configured the network settings to ensure the VM was reachable within my lab environment.
+4. **Cloud-Init Image Acquisition**: I downloaded the Ubuntu Cloud-Init (cloudimg) ISO directly to the local Proxmox storage to serve as the foundation for my automation templates.
+
+## Automating with Cloud-Init
+
+I implemented a **Cloud-Init drive**, which is the essential for my Terraform and Ansible automation workflow. Without a Cloud-Init drive, any VM created by Terraform would remain stuck at the initial login or installation screen, requiring manual intervention. By integrating Cloud-Init, I enabled Terraform to automatically "inject" critical configurations during the first boot, including:
+
+- **SSH Key injection**: I implemented this for secure, passwordless remote access, allowing tools like Ansible to automate tasks without manual intervention.
+- **User account & password**: I configured a primary user with a password as a fallback for local console access and to authorize administrative (sudo) operations.
+- **Static IP** address assignment.
 
 
-No: se tu hai “la 24.04” tra le ISO, non è quella giusta per questo metodo. Per cloud-init “fatto bene” ti serve la cloud image (…cloudimg-amd64.img), non la ISO di installazione.
-8)scarico da url la iso cloudimg in local su proxmox
+## Template Creation Commands
+I used the QEMU Manager (qm), the native Proxmox CLI utility, to provision the base templates. This approach allowed me to script the initial VM configuration, ensuring a repeatable and consistent baseline for the subsequent Terraform-led automation.
 
-8)creare è un Cloud-Init drive. Nel mondo dell'automazione (Terraform/Ansible), è il "pezzo del puzzle" fondamentale.
-
-Senza un drive Cloud-Init, quando Terraform crea una VM su Proxmox, la VM si accenderebbe ma rimarrebbe ferma alla schermata di installazione o di login, obbligandoti a intervenire a mano. Con il drive Cloud-Init, Terraform può "iniettare" automaticamente l'utente, la password, le chiavi SSH e l'indirizzo IP.
 ```bash
-qm create 100 --name ubuntu-template --memory 2048 --net0 virtio,bridge=vmbr0 --scsihw virtio-scsi-pci
+qm create 100 --name ubuntu-template --memory 2048 --net0 virtio,bridge=vmbr0 --scsihw virtio-scsi-pci          #Created the VM template shell
 
-
+#Define variables for the import process
 VMID=100
 STORAGE=local-lvm
 IMG=/var/lib/vz/template/iso/noble-server-cloudimg-amd64.img
 
+#Import the disk image and set up the Cloud-Init drive
 qm set $VMID --scsi0 ${STORAGE}:0,import-from=$IMG
 qm set $VMID --ide2 ${STORAGE}:cloudinit
 qm set $VMID --boot order=scsi0
 qm set $VMID --serial0 socket --vga serial0
 ```
 
+## Workstation Setup & SSH Key Generation
 
+1. **WSL Installation**: I installed the Windows Subsystem for Linux (WSL) on my Windows machine via PowerShell to create a native Linux environment for my DevOps tools.
 
-9)da powershell su windows installo sottosistema linux WLS. 
 ```bash
 wsl --install
 ```
-10)genera chiavi ssh pc casa e mostrala 
+
+2. **SSH Key Pair**: I generated a high-security ED25519(better than RSA) SSH key pair to establish a secure connection between my workstation and the lab environment.
+
 ```bash
-ssh-keygen -t ed25519 -C "PC-CASA"
+ssh-keygen -t ed25519 -C "PC-HOME"       #-C is the label
+```
+
+3. **Display the public key to be copied**
+
+```bash
 cat ~/.ssh/id_ed25519.pub
 ```
-11)copiala tutta, anche commento
 
-12) configura cloud init con username, password, chiavi ssh generate prima, come dns domain :lan e come dns name 1.1.1.1
-13) ip:dinamico
-14) controlla la vm 100 avviandola e se tutto è ok: clicca regenerate image in alto a dx
-15) spegni vm 100
-16) tasto dx su vm 100, Cerca la voce "Convert to template" (di solito è verso la fine del menu).
+4. **Key Management**: I copied the entire public key string, including the comment, to integrate it into the Cloud-Init configuration
 
-Clicca su "Yes" per confermare.
+## Cloud-Init Configuration & Template Conversion
 
-Cosa deve succedere ora:
+1. **Cloud-Init Customization**: I configured the Cloud-Init parameters with my designated username, password, and the previously generated SSH key. I also set the DNS domain to .lan and the DNS server to 1.1.1.1.
+2. **IP Assignment**: For the template baseline, I selected a Dynamic IP (DHCP) to ensure maximum flexibility when cloning new instances.
 
-L'icona cambierà: non sarà più un quadratino con uno schermo blu/grigio, ma diventerà un foglietto con una corona dorata/gialla.
+NOTE: I configured the base template with a Dynamic IP (DHCP) to ensure it remains a generic and reusable 'gold image'. However, during the deployment phase, I used Terraform to inject Static IPs into each instance. This ensures that critical infrastructure components—like the Monitoring stack (.7) and the Jenkins Agent (.8)—always reside at fixed addresses for reliable communication
 
-Se provi a cliccare sul tasto "Start", vedrai che è disattivato. È giusto così: un template è uno stampo, non si accende mai, si usa solo per far nascere altre VM
-17) Il prossimo passo è installare Terraform nel tuo sottosistema Linux (WSL) e preparare il collegamento con Proxmox.
+3. **Validation**: I performed a test boot of VM 100 to verify the settings. Once confirmed, I used the "Regenerate Image" function in the Proxmox UI to finalize the Cloud-Init drive.
+4. **System Shutdown**: I safely powered down VM 100 to prepare it for conversion.
+5. **Proxmox Template Conversion**: I converted the VM into a Proxmox Template.
 
-1. Installare Terraform nel WSL
-Apri il tuo terminale Ubuntu/WSL su Windows e incolla questi comandi (uno alla volta) per installare Terraform:
+**Result: The VM icon changed to the Template icon, and the "Start" button was disabled.**
+**Purpose**: This template now acts as a "gold image", ensuring that all future VMs are identical and ready for automation.
+
+## Infrastructure as Code: Terraform Setup
+
+1. **Terraform Installation** (WSL): I installed Terraform within my WSL Ubuntu environment to manage the infrastructure as code. I added the official HashiCorp GPG key and repository to ensure a secure and up-to-date installation.
+
+
 ```bash
-# Aggiungi la chiave di HashiCorp
+#Add HashiCorp GPG key
 wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
 
-echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list        # Aggiungi il repository ufficiale
+#Add the official repository
+echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
 
-sudo apt update && sudo apt install terraform -y    # Installo Terraform
+#Install Terraform
+sudo apt update && sudo apt install terraform -y
 ```
-**controllo che sia installato**
+
+2. **Verification**: I confirmed the successful installation by checking the version:
+
 ```bash
 terraform -version
+#Output: Terraform v1.14.3 on linux_amd64
 ```
 
-Terraform v1.14.3
-on linux_amd64
 
+
+
+------------------------------------------------------------------------------------------
 **creato l'API Token su Proxmox (Datacenter -> Permissions -> API Tokens). Senza quello, Terraform non ha il permesso di entrare nel server.**
 
 - Clicca su Add.
