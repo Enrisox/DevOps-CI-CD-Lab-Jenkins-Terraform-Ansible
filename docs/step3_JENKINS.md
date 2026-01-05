@@ -1,6 +1,7 @@
 # JENKINS Configuration and installation 
 **What is Jenkins?** <br>
-**Jenkins** is an automation server (typically self‑hosted) used mainly for CI/CD: you define a “pipeline” (script) that executes builds, tests, scans, packaging, and deployment when an event occurs (push, PR, cron, manual) or when you decide.
+
+**Jenkins** is an automation server (typically self‑hosted) used mainly for CI/CD: you define a “pipeline” that executes builds, tests, scans, packaging, and deployment when an event occurs (push, PR, cron, manual) or when you decide.
 
 **What Jenkins is for?**
 1. Orchestrating pipeline steps (build/test/deploy) on one or more agents/nodes, even in parallel.
