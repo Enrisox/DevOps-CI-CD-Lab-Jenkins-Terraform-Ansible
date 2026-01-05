@@ -1,28 +1,35 @@
-# CONFIGURAZIONE E INSTALLAZIONE JENKINS SU VM CI (continuous integration)
+# JENKINS CONFIGURATION AND INSTALLATION ON "CI" VM (continuous integration)
+**Jenkins** is an automation server (typically self‑hosted) used mainly for CI/CD: you define a “pipeline” (script) that executes builds, tests, scans, packaging, and deployment when an event occurs (push, PR, cron, manual) or when you decide.
 
-**Jenkins** è un server di automazione (tipicamente self‑hosted) usato soprattutto per CI/CD: definisci una “pipeline” (script) che esegue build, test, scan, packaging e deploy quando succede un evento (push, PR, cron, manuale) o quando lo decidi tu.
+**What Jenkins is for?**
+1. Orchestrating pipeline steps (build/test/deploy) on one or more agents/nodes, even in parallel.
+2. Integrating many different tools thanks to plugins (Git, Docker, Kubernetes, security scanners, notifications, etc.).
+3. Keeping everything “in‑house” (homelab/on‑prem) and having total control over network, credentials, runners, caching, and environments.
 
-**A cosa serve Jenkins**
-- Orchestrare step di pipeline (build/test/deploy) su uno o più agent/nodi, anche in parallelo.
-- Integrare tanti tool diversi grazie ai plugin (Git, Docker, Kubernetes, scanner sicurezza, notifiche, ecc.).
-- Tenere tutto “in casa” (homelab/on‑prem) e avere controllo totale su rete, credenziali, runner, caching e ambienti.
+**Difference compared to GitHub Actions**
+- GitHub Actions is integrated into GitHub with managed or self‑hosted runners.
+- Jenkins you usually manage yourself on a VM/container.
+- Actions is native to GitHub; Jenkins is agnostic (GitHub/GitLab/Bitbucket/etc.), but you configure the integration yourself.
 
-**Differenza rispetto a GitHub Actions**
-GitHub Actions è integrato in GitHub (SaaS) con runner gestiti o self-hosted; Jenkins di solito lo gestisci tu su VM/container.
-**Setup/gestione**: Actions è più “pronto subito”; Jenkins richiede più manutenzione (aggiornamenti, plugin, backup, sicurezza), ma è più flessibile quando vuoi ambienti custom.
-**Integrazione repo**: Actions è nativo per GitHub; Jenkins è agnostico (GitHub/GitLab/Bitbucket/etc.), ma l’integrazione la configuri tu.
+**Setup/management**: Actions is more “ready out of the box”; Jenkins requires more maintenance (updates, plugins, backups, security), but it is more flexible when you want custom environments.
 
-**Differenza rispetto ai servizi AWS simili (CodeBuild/CodePipeline)**
-- **Modello**: su AWS hai servizi gestiti e paghi a consumo; Jenkins è un tuo servizio (costi “fissi” di VM e tempo di gestione).
-- **Integrazione cloud**: AWS CI/CD è fortemente integrato con IAM, ECR, ECS/EKS, S3, ecc.; Jenkins può farlo, ma via plugin/credential management e configurazione.
-- **Portabilità**: Jenkins ti resta uguale in homelab, on‑prem o cloud; con AWS sei più “cloud‑native” ma anche più legato all’ecosistema.
+**Note: I have previously implemented GitHub Actions with a self-hosted runner on an on-premises server in my previous DevOps project (available here on my GitHub). This experience provided me with a solid understanding of how self-managed runners interact with cloud-based CI/CD platforms.**   
 
-# Creazione del Playbook Jenkins
+https://github.com/Enrisox/Secure-Home-Lab-Docker
+
+**Difference compared to similar AWS services (CodeBuild/CodePipeline)**
+- with AWS you have managed services and pay per use; Jenkins is your own service.
+- **Cloud integration:** AWS CI/CD is strongly integrated with IAM, ECR, ECS/EKS, S3, etc.; Jenkins can do it, but via plugin/credential management and configuration.
+- **Portability**: Jenkins stays the same in homelab, on‑prem, or cloud; with AWS you are more “cloud‑native” but also more tied to the ecosystem.
+
+## Jenkins deployment with Ansible
+
+To ensure the reliability of my CI environment, I started by configuring a **persistent volume**. <br>
+This means that if I delete the container or restart the VM, my Jenkins jobs, plugins, and configurations will not be lost because they are saved directly on the VM's filesystem at /home/enrico/jenkins_home
 
 
-configureremo un Volume Persistente. Questo significa che se cancelli il container o riavvii la VM, i tuoi lavori (Jobs), i plugin e le configurazioni di Jenkins non andranno persi perché saranno salvati in una cartella sulla VM (/home/enrico/jenkins_home).
+1)**I created the playbooks/deploy-jenkins.yml file to automate the entire setup**
 
-Procediamo a scrivere il file playbooks/deploy-jenkins.yml
 ```bash
 nano playbooks/deploy-jenkins.yml
 ```
@@ -34,126 +41,129 @@ nano playbooks/deploy-jenkins.yml
   become: true
 
   tasks:
-    - name: Assicura che la directory dei dati esista
+    - name: Ensure the data directory exists
       ansible.builtin.file:
-        path: /home/enrico/jenkins_home
+        path: /home/userX/jenkins_home
         state: directory
-        owner: 1000 # UID standard dell'utente jenkins nel container
+        owner: 1000 # I used the standard Jenkins UID for correct permissions
         group: 1000
         mode: '0755'
 
-    - name: Avvia il container di Jenkins
+    - name: Start the Jenkins container
       community.docker.docker_container:
         name: jenkins-server
         image: jenkins/jenkins:lts
         state: started
         restart_policy: always
         published_ports:
-          - "8080:8080"   # Interfaccia Web
-          - "50000:50000" # Porta per i futuri agent (nodi worker)
+          - "8080:8080"   # Web Interface
+          - "50000:50000" # Port for future build agents
         volumes:
           - /home/enrico/jenkins_home:/var/jenkins_home
         env:
           JAVA_OPTS: "-Djenkins.install.runSetupWizard=true"
 ```
 
-**Cos’è ansible-galaxy collection install community.docker**
-Ansible Galaxy è il repository ufficiale di ruoli e collection Ansible.
-Una collection è un pacchetto che contiene moduli, plugin e ruoli specifici per un certo dominio.
-community.docker è la collection ufficiale della community per gestire Docker con Ansible.
-Ansible ha bisogno di un "modulo" specifico per parlare con Docker. Se non lo hai già, installalo nel WSL con questo comando:
 
+## Ansible Galaxy
+I used Ansible Galaxy, which is the official repository for Ansible roles and collections. A collection is a package that contains modules, plugins, and roles specific to a certain domain.
+
+The community.docker collection is the official community-maintained package for managing Docker with Ansible. Since Ansible needs specific "modules" to communicate with the Docker API, I installed it within my WSL environment using the following command:
 ```bash
-ansible-galaxy collection install community.docker
+ansible-galaxy collection install community.docker      # Installing the Docker collection
 
-ansible-playbook -i inventory/hosts.ini playbooks/deploy-jenkins.yml
+ansible-playbook playbooks/deploy-jenkins.yml  # Running the Jenkins deployment playbook
 ```
+This command downloads the latest modules for managing Docker containers, images, networks, volumes, and Compose files. It stores them in ~/.ansible/collections or within the project's collections/ folder.
 
-Scarica i moduli più recenti per Docker, container, immagini, network, volume, compose, ecc.
-Li mette in ~/.ansible/collections o nella cartella collections/ del progetto.
+## Post-Deployment: Accessing Jenkins
 
-## Una volta che il playbook dice "OK", Jenkins sarà attivo. Ecco come procedere:
+Once the playbook finished with an "OK" status, Jenkins was active and running. Here is how I proceeded with the initial setup:
 
-Apri il browser e vai su: http://192.168.1.7:8080
-Ti apparirà una schermata che chiede la Administrator Password.
-Per recuperarla senza entrare nella VM, usa Ansible dal tuo WSL
+1. Accessing the UI: I opened my browser and navigated to http://192.168.1.7:8080.
+2. Unlocking Jenkins: A screen appeared asking for the Administrator Password.
+3. Retrieving the Password: Instead of manually logging into the VM via SSH, I used an Ansible ad-hoc command from my WSL terminal to read the secret file:
 
-
-**È un file temporaneo che Jenkins crea al primo avvio per assicurarsi che solo chi ha accesso al server possa configurarlo.**
 ```bash
 ansible ci -a "cat /home/enrico/jenkins_home/secrets/initialAdminPassword"
 ```
-**installa componenti aggiuntivi --> OK**
+This is a temporary file created by Jenkins during the first boot. It acts as a security measure to ensure that only the person with administrative access to the server filesystem can perform the initial configuration.
+
+**Finalizing Setup**: I pasted the password into the browser and selected "Install suggested plugins" to complete the basic configuration.
 
 
+# Agent Node (Runtime) Configuration
 
+1. We will create an SSH key to allow Jenkins to enter machine .8.
+2. We will configure machine .8 inside the Jenkins interface.
+3. We will do a test: we will ask Jenkins to launch a command on .8 to see if it "obeys".
+4. Now we will make it so that the "Foreman" (Jenkins on .7) can give orders to the "Worker" (Runtime on .8). To do this, we will use an SSH key.
 
-# Dobbiamo configurare il "Nodo Agente". In pratica:
+The trick is this: we will generate the key on machine .7 (inside the Jenkins folder) and copy it to machine .8.
 
-- Creeremo una chiave SSH per permettere a Jenkins di entrare nella macchina .8.
-- Configureremo la macchina .8 dentro l'interfaccia di Jenkins.
-- Faremo un test: chiederemo a Jenkins di lanciare un comando sulla .8 per vedere se "ubbidisce".
+**1. Generate the SSH key on the Jenkins server**
 
-Ora faremo in modo che il "Capocantiere" (Jenkins sulla .7) possa dare ordini all' "Operaio" (Runtime sulla .8). Per farlo, useremo una chiave SSH.
-
-Il trucco è questo: genereremo la chiave sulla macchina .7 (dentro la cartella di Jenkins) e la copieremo sulla macchina .8.
-
-1. Genera la chiave SSH sul server Jenkins
-Lancia questo comando dal tuo WSL. Useremo Ansible per dire alla macchina .7 di creare una chiave proprio nella cartella che abbiamo mappato per Jenkins:
-
-
-```bash
-ansible ci -m shell -a "ssh-keygen -t ed25519 -f /home/enrico/jenkins_home/jenkins_key -N ''"
-```
-2. Autorizza Jenkins sulla macchina Runtime
-Ora dobbiamo prendere la "chiave pubblica" appena creata e metterla tra le chiavi autorizzate della macchina .8. Invece di fare copia-incolla manuale, facciamo tutto con un colpo solo:
+I ran this command from my WSL. I used Ansible to tell machine .7 to create a key right in the folder I mapped for Jenkins:
 
 ```bash
-# 1. Leggiamo la chiave pubblica dalla .7
-PUBLIC_KEY=$(ansible ci -a "cat /home/enrico/jenkins_home/jenkins_key.pub" | grep ssh-ed25519)
-
-# 2. La aggiungiamo alla .8 (Runtime)
-ansible runtime -m authorized_key -a "user=enrico key='$PUBLIC_KEY'"
+ansible ci -m shell -a "ssh-keygen -t ed25519 -f /home/userX/jenkins_home/jenkins_key -N ''"
 ```
-
-## sulla macchina runtime
-
-Sul terminale della Vm runtime ho installato Java con questi comandi:
-
+**2. Authorize Jenkins on the Runtime machine**
+Now I took the "public key" just created and put it among the authorized keys of machine .8. Instead of doing manual copy-paste, I did everything in one go:
 
 ```bash
-sudo apt update                      #aggiorna i pacchetti
-sudo apt install default-jre -y        #Installa Java (JRE)
-java -version                     #verifica l'installazione:
+PUBLIC_KEY=$(ansible ci -a "cat /home/userX/jenkins_home/jenkins_key.pub" | grep ssh-ed25519) #it read the public key from .7
+
+ansible runtime -m authorized_key -a "user=userX key='$PUBLIC_KEY'"   #I added it to .8 (Runtime)
 ```
 
-## creazione nodo da interfaccia jenkins http://ip_VM_Jenkins(CI)
+## On the runtime VM
 
+On the terminal of the Runtime VM I installed Java with these commands:
 
-1. Vai su Gestisci Jenkins (Manage Jenkins) > Nodes.
-2. Clicca su + New Node (Nuovo Nodo) a sinistra.
-3. Inserisci il nome runtime-node, seleziona Permanent Agent (Agente permanente) e clicca su Create.
-4. Remote root directory: Scrivi /home/enrico/jenkins (la cartella dove Jenkins lavorerà sul nodo).
-5. Labels: Scrivi runtime (serve per dire ai futuri lavori/job di girare proprio qui).
-6. Launch method: Seleziona Launch agents via SSH.
-7. Host: IP statico della VM runtime: es: 192.168.1.8.
+```bash
+sudo apt update                        #updates packages
+sudo apt install default-jre -y        #Installs Java (JRE)
+java -version                          #verifies installation
+```
+
+## Node creation from Jenkins interface http://ip_VM_Jenkins(CI)
+
+1. Go to Manage Jenkins > Nodes.
+2. Click on + New Node on the left.
+3. Enter the name runtime-node, select Permanent Agent and click Create.
+4. Remote root directory: I wrote /home/userX/jenkins (the folder where Jenkins will work on the node).
+5. Labels: I wrote runtime (it is used to tell future jobs to run exactly here).
+6. Launch method: Select Launch agents via SSH.
+7. Host: Static IP of the runtime VM: e.g.: 192.168.1.8.
 
 **Credentials:**
 
-1. Clicca su Add > Jenkins.
-2. Kind: Seleziona SSH Username with private key.
-3. Username: enrico.
-4. Private Key: Seleziona Enter directly, clicca su Add e incollato la chiave privata che leggo dal terminale con il comando ansible.
-5. Clicca su Add in fondo al pop-up.
-6. seleziona la credenziale appena creata dal menu a tendina Credentials.
+1. Clicl  on Add > Jenkins.
+2. Kind: select SSH Username with private key.
+3. Username: userX.
+4. Private Key: select Enter directly, then click Add and paste the private key you can see with this command:
 
 ```bash
-ansible ci -a "cat /home/enrico/jenkins_home/jenkins_key"
+ansible ci -a "cat /home/userX/jenkins_home/jenkins_key"
 ```
 
-Host Key Verification Strategy: Cambia in Non verifying Verification Strategy (per saltare il controllo manuale dell'impronta SSH).
+6. Click on "Add" 
+7. I selected the credentials I just created from the Credentials dropdown menu.
+8. Host Key Verification Strategy: I changed it to **Non verifying Verification Strategy** (to skip the manual check of the SSH fingerprint).
+9. Save
 
-**Save**
+
+NOTE: Why I chose to skip the host Key Verification?
+I chose to skip this verification for three main reasons:
+
+1. **Automation**: If I leave the verification active, the first time Jenkins tries to connect, it will fail because the SSH fingerprint of the Runtime VM is not yet in its "known_hosts" file. It would require a manual confirmation that cannot be done through the interface.
+2. **Lab Environment**: In a development or homelab environment where VMs are often destroyed and recreated (for example, with Terraform or Proxmox clones), the SSH fingerprint changes every time. Skipping the check prevents the connection from breaking after every reinstall.
+3. **Simplification**: It allows the Jenkins Controller to trust the Agent node immediately, ensuring the "Agent successfully connected" status without extra troubleshooting.
+
+While this is perfect for a lab, in a production environment, you would typically use "Known hosts file Verification" to prevent Man-in-the-Middle (MITM) attacks.
+
+**If in the node logs it says "Agent successfully connected and online" it is working**
 
 Se nei log del nodo c'è **"Agent successfully connected and online"** è funzionante.
 
