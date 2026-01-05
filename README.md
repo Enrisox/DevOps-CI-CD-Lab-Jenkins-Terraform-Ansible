@@ -1,8 +1,11 @@
 # About Me
 
-My name is **Enrico Soci**, and I am a second-year student in the **ITS DevSecOps program(ECQ Level 5)** at the **Cisco Academy Olivetti**
+## About Me
 
-I developed this project, together with other lab projects, as part of my learning path to gain hands-on experience with **DevSecOps tools and practices**, including infrastructure automation, CI/CD pipelines, containerization, and cloud integration.
+My name is **Enrico Soci**.  
+I am a second-year student at the **ITS Academy Olivetti**, enrolled in the course **“Tecnico per la sicurezza e l’integrazione dei sistemi informativi – DevSecOps”**.
+This project was developed as part of my training to practice and consolidate skills in **DevSecOps tools and methodologies**, including automation, infrastructure management, CI/CD pipelines, and containerized environments.
+
 This repository contains a self-hosted DevOps lab built to practice real-world CI/CD concepts using modern DevOps tools.
 The lab environment is deployed on Proxmox and fully automated using Terraform and Ansible. CI/CD pipelines are implemented with Jenkins and Docker, leveraging AWS CodeCommit for source control and Amazon ECR for container image management.
 
