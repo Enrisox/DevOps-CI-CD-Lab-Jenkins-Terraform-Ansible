@@ -38,14 +38,14 @@ The focus is on fundamentals, automation, and clarity, rather than production-sc
 
 ## My CI/CD Workflow
 
-1. Code Push: I push code updates to my AWS CodeCommit repository, which serves as the secure starting point for my automated pipeline.
-2. Jenkins Trigger: I configured Jenkins to monitor my repository via SCM polling; it automatically detects my changes and triggers the automation process.
-3. Agent Execution: My pipeline executes on a dedicated Jenkins Runtime Agent that I provisioned using Terraform and configured with Ansible on my Proxmox cluster.
-4. Security Scanning: I integrated Trivy into the workflow to automatically perform a security audit of my Docker images, identifying vulnerabilities before any deployment occurs.
-5. Artifact Storage: Once the build and security checks pass, I push the verified Docker image—my deployment artifact—to my private AWS ECR registry.
-6. Image Pull: My runtime agent pulls the latest version of the application directly from AWS ECR, ensuring it always deploys the most recent verified image.
-7. Container Orchestration: I manage the container lifecycle by automatically replacing the existing container with the new version, ensuring a clean and reliable update of the web app.
-8. Local Execution Model: I designed the pipeline to run commands directly on the host machine via the Jenkins Agent; this follows a production-ready architecture that I built to avoid the security risks of SSH-based deployments.
+1. **Code Push**: I push code updates to my AWS CodeCommit repository, which serves as the secure starting point for my automated pipeline.
+2. **Jenkins Trigger**: I configured Jenkins to monitor my repository via SCM polling; it automatically detects my changes and triggers the automation process.
+3. **Agent Execution**: My pipeline executes on a dedicated Jenkins Runtime Agent that I provisioned using Terraform and configured with Ansible on my Proxmox cluster.
+4. **Security Scanning**: I integrated Trivy into the workflow to automatically perform a security audit of my Docker images, identifying vulnerabilities before any deployment occurs.
+5. **Artifact Storage**: Once the build and security checks pass, I push the verified Docker image—my deployment artifact—to my private AWS ECR registry.
+6. **Image Pull**: My runtime agent pulls the latest version of the application directly from AWS ECR, ensuring it always deploys the most recent verified image.
+7. **Container Orchestration**: I manage the container lifecycle by automatically replacing the existing container with the new version, ensuring a clean and reliable update of the web app.
+8. **Local Execution Model**: I designed the pipeline to run commands directly on the host machine via the Jenkins Agent; this follows a production-ready architecture that I built to avoid the security risks of SSH-based deployments.
 
 
 ## Learning Objectives
