@@ -165,5 +165,4 @@ While this is perfect for a lab, in a production environment, you would typicall
 
 **If in the node logs it says "Agent successfully connected and online" it is working**
 
-Se nei log del nodo c'è **"Agent successfully connected and online"** è funzionante.
-
+If in the node logs it says "Agent successfully connected and online" it is working.
