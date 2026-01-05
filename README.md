@@ -1,7 +1,10 @@
-# Proxmox-CI/CD Lab
+# About Me
+
+My name is **Enrico Soci**, and I am a second-year student in the **ITS DevSecOps program** at the **Cisco Academy Olivetti**, currently certified at **ECQ Level 5**.
+
+I developed this project, together with other lab projects, as part of my learning path to gain hands-on experience with **DevSecOps tools and practices**, including infrastructure automation, CI/CD pipelines, containerization, and cloud integration.
 
 This repository contains a self-hosted DevOps lab built to practice real-world CI/CD concepts using modern DevOps tools.
-
 The lab environment is deployed on Proxmox and fully automated using Terraform and Ansible. CI/CD pipelines are implemented with Jenkins and Docker, leveraging AWS CodeCommit for source control and Amazon ECR for container image management
 
 ## Hardware Setup
