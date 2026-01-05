@@ -1,34 +1,34 @@
-# ANSIBLE
+# Ansible configuration
 
-**L'Inventory di Ansible** è fondamentalmente la "rubrica dei contatti" o il "database" dei server che vuoi gestire. <br>
-**È il file dove elenchi gli indirizzi IP o i nomi a dominio (FQDN) delle macchine su cui Ansible deve andare a lavorare.**permette di organizzare l'infrastruttura in modo logico:
+**Ansible's Inventory** is the file/list that defines which machines/servers Ansible manages. <br>
+It is the file where I list the IP addresses or Fully Qualified Domain Names (FQDN) of the machines on which Ansible must work. It allows me to organize the infrastructure logically:
 
-Senza un inventory, Ansible non saprebbe a chi inviare i comandi scritti nei Playbook.
+Without an inventory, Ansible wouldn't know where to send the commands written in the Playbooks.
 
-- Host (Nodi): I singoli server (es. 192.168.1.91).
-- Gruppi: Permettono di classificare i server per funzione (es. tutti i server web, tutti i database).
-- Variabili: Puoi definire impostazioni specifiche per un singolo host o per un intero gruppo (es. la porta SSH o l'utente da usare).
+- **Hosts** (Nodes): The individual servers (e.g., 192.168.1.91).
+- **Groups**: These allow me to classify servers by function (e.g., all web servers, all databases).
+- **Variables**: I can define specific settings for a single host or an entire group (e.g., the SSH port or the user to be used).
 
-## I formati più comuni
-
-1. **Formato INI**
-È il più semplice da leggere e scrivere, ideale per laboratori e configurazioni veloci.
+## Most common formats
+1)**INI Format**  is the simplest to read and write, ideal for labs and quick configurations.
 
 ```bash
 [jenkins]
-server-ci-01 ansible_host=192.168.1.91
+ci ansible_host=192.168.1.7
 
-[database]
-db-prod ansible_host=192.168.1.50
+[runtime_group]
+runtime ansible_host=192.168.1.8
 
 [all:vars]
 ansible_user=enrico
+ansible_ssh_private_key_file=~/.ssh/id_ed25519
+ansible_python_interpreter=/usr/bin/python3
 ```
-2. **Formato YAML**
-Più moderno e strutturato, preferito in ambienti complessi perché segue la stessa sintassi dei Playbook.
+
+
+**YAML Format** More modern and structured, preferred in complex environments because it follows the same syntax as Playbooks.
 
 ```yaml
-
 all:
   hosts:
     server-ci-01:
@@ -39,43 +39,38 @@ all:
         server-ci-01:
 ```
 
-**Inventory Statico vs Dinamico**
+### Static vs. Dynamic Inventory
 
-- **Statico**: Un file scritto a mano (come il tuo hosts.ini). Va bene quando hai pochi server che non cambiano spesso.
-- **Dinamico**: Ansible interroga automaticamente un fornitore (es. AWS, Azure o anche il tuo Proxmox) per ottenere la lista aggiornata delle VM attive. È fondamentale quando le macchine vengono create e distrutte continuamente.
+- **Static**: A manually written file (like my hosts.ini). It works well when you have a few servers that don't change often.
+- **Dynamic**: Ansible automatically queries a provider (e.g., AWS, Azure, or even my Proxmox) to obtain an updated list of active VMs. It is essential when machines are constantly being created and destroyed.
 
-## Installazione Ansible su terminale wsl Ubuntu
-
-Sull terminale Ubuntu:
+## Ansible Installation on WSL Ubuntu terminal
+On the Ubuntu terminal:
 
 ```bash
 sudo apt update
 sudo apt install ansible -y
-```
-Verifica l'installazione:
 
-```bash
-ansible --version
+ansible --version     #Verify installation
 ```
-La versione 2.16.3 di Ansible risulta correttamente installata sul sottosistema Linux
+Ansible version 2.16.3 is correctly installed on the Linux subsystem.
 
-**Nel tuo home WSL:**
+**In WSL:**
 ```bash
 mkdir -p lab-ansible/{inventory,playbooks}
 cd lab-ansible
 ```
 
-**Struttura finale:**
+**Final structure:**
 
 lab-ansible/
 ├── inventory/
 │   └── hosts.ini
 └── playbooks/
-    └── ping.yml
+    └── 
 
 
-
-### scriviamo nel file L’INVENTORY
+## Writing the INVENTORY file "hosts.ini"
 
 ```bash
 nano inventory/hosts.ini
@@ -93,52 +88,47 @@ ansible_ssh_private_key_file=~/.ssh/id_ed25519
 ansible_python_interpreter=/usr/bin/python3
 ```
 
-### PLAYBOOK DI TEST
+## TEST PLAYBOOK
 
 ```bash
 nano playbooks/ping.yml
+```
 
-#INSERISCI DENTRO
-
+```bash
 - name: Test connectivity
   hosts: all
   gather_facts: false
   tasks:
     - name: Ping hosts
       ansible.builtin.ping:
-
 ```
-
+Finally, I executed the playbook to verify the connection:
 ```bash
 ansible-playbook -i inventory/hosts.ini playbooks/ping.yml
 ```
 
 IMMAGINE PING PONG NERA
 
-**Ansible è operativo e pronto per il provisioning**
-Ansible ha raggiunto entrambe le VM
+Ansible is operational and ready for provisioning Ansible has successfully reached both VMs.
 
+- SSH with keys is working correctly.
+- No password prompts during connection.
+- Authentication is successful.
+- The Ansible ping module responded as expected.
 
+## BASE BOOTSTRAP and NETWORK CONFIGURATION of Cloned VMs
+On BOTH VMs, I aimed to achieve:
 
-- SSH con chiavi funziona
-- Nessuna richiesta di password
-- Autenticazione corretta
-- Il modulo Ansible ping ha risposto
+- Coherent hostnames
+- Installation of base packages.
+- Sudo access without a password (essential for automation).
 
-# BOOTSTRAP BASE e NETWORK CONFIGURATION DELLE VM clonate
-
-Su ENTRAMBE le VM:
-
-- hostname coerente
-- pacchetti base
-- sudo senza password (per automazione)
-
+**I created the bootstrap playbook:**
 ```bash
 nano playbooks/bootstrap.yml
 ```
 
 ```bash
-
 - name: Network & Hostname Bootstrap
   hosts: all
   become: true
@@ -152,7 +142,7 @@ nano playbooks/bootstrap.yml
       runtime: 192.168.1.8
 
   tasks:
-    # 1. Configurazioni di sistema (mentre la rete è ancora quella vecchia)
+    # 1. System configurations (while the old network is still active)
     - name: Set hostname
       ansible.builtin.hostname:
         name: "{{ inventory_hostname }}"
@@ -174,7 +164,7 @@ nano playbooks/bootstrap.yml
         state: present
         update_cache: yes
 
-    # 2. Prepariamo il file di rete (non lo applichiamo ancora)
+    # 2. Prepare the network file (not applied yet)
     - name: Configure netplan
       ansible.builtin.copy:
         dest: /etc/netplan/01-ansible.yaml
@@ -196,40 +186,50 @@ nano playbooks/bootstrap.yml
                 nameservers:
                   addresses: {{ net_dns | to_json }}
 
-     #3. ULTIMO STEP: Cambiamo l'IP
-    - name: Apply netplan (Il server cambierà IP e la connessione cadrà)
+     # 3. FINAL STEP: IP Change
+    - name: Apply netplan (The server will change IP and the connection will drop)
       ansible.builtin.shell: "netplan apply"
       async: 5
-      poll: 0```
+      poll: 0
+```
 
 le due vm avevano già hostname fissato durante creazione con terraform dal clone 100
 Used Ansible to enforce system state idempotently, including hostnames and sudo policies, regardless of initial VM configuration.
 
-
+**I executed the playbook with the following command:**
 ```bash
 ansible-playbook -i inventory/hosts.ini playbooks/network-bootstrap.yml
 ```
+Although the two VMs already had their hostnames set during the Terraform creation process from the ID 100 clone, I used Ansible to enforce the system state **idempotently**. This ensures that hostnames and sudo policies remain correct regardless of the initial VM configuration.
 
+### what is Idempotentcy?**
+**Terraform without idempotency:**
+terraform apply → creates 3 EC2
+terraform apply → creates 3 MORE EC2 (6 total!)
+  
+**Terraform with idempotency(idempotent):**
+terraform apply → creates 3 EC2  
+terraform apply → 3 EC2 still there → "no changes"
+<br>
 **Questo è Infrastructure as Code**
 
-## Per problematiche con chiavi SSH, da WSL terminal:
 
-```bash
-ssh-keygen -R 192.168.1.x
-ssh-keyscan -H 192.168.1.x >> ~/.ssh/known_hosts
-```
 
 ## STEP B
 
-Su ENTRAMBE le VM:
+On BOTH VMs, my objectives were:
 
-- installare Docker Engine
-- installare Docker Compose plugin
-- permettere a enrico di usare Docker senza sudo
+1. Install Docker Engine.
+2. Install the Docker Compose plugin.
+3. Allow the user enrico to use Docker without needing sudo.
+
+**I created the Docker installation playbook:**
 
 ```bash
 nano playbooks/install-docker.yml
 ```
+**Playbook content:**
+
 ```bash
 - name: Install Docker
   hosts: all
@@ -290,56 +290,49 @@ nano playbooks/install-docker.yml
 
     - name: Add enrico to docker group
       ansible.builtin.user:
-        name: userX
+        name: enrico
         groups: docker
         append: yes
 ```
-**ESEGUI PLAYBOOK DOCKER**
+**Executing Docker playbook**
 ```bash
 ansible-playbook -i inventory/hosts.ini playbooks/install-docker.yml
 ```
+## Ansible Configuration (ansible.cfg)
+I created the ansible.cfg file to act as the central "command center" for the project's settings. This file is essential for streamlining automation, as it eliminates the need to manually pass repetitive arguments (such as the inventory path or the remote user) every time a command is executed.
 
-Terraform + Proxmox:
-
-crea VM
-
-collega NIC
-
-NON gestisce netplan dentro la VM
-
-💥 Terraform NON entra nel sistema operativo
-💥 Terraform NON sa se l’interfaccia si chiama eth0 o ens18
-
-👉 quello è Configuration Management
-👉 quindi: Ansible
-
-```bash
-inventory/
-  hosts.ini
-group_vars/
-  all.yml
-host_vars/
-  ci.yml
-  runtime.yml
-playbooks/
-  bootstrap.yml
-  network.yml   
-  docker.yml
-```
-# creazione ansible.cfg
+**1. ansible.cfg creation**
+By placing this file in the project root (~/lab-ansible/), I ensured that the environment is consistent and portable. Ansible automatically prioritizes a local .cfg file over global system settings.
 ```bash
 nano ansible.cfg
 ```
-```bash
+Configuration Content:
+
+```ini
 [defaults]
 inventory = inventory/hosts.ini
 remote_user = userX
 ```
-**verifico con :**
+
+**2. Validation & Results**
+With the configuration in place, I verified the entire setup by querying both nodes simultaneously to check the Docker status:
+
 ```bash
-ansible all -i inventory/hosts.ini -a "docker ps"
+ansible all -a "docker ps"      #instead of: ansible all -i inventory/hosts.ini -a "docker ps"
 ```
 
-- Automazione: ho lanciato il playbook per installare Docker Engine, CLI e i plugin di Compose su entrambi i server contemporaneamente.
-- Permessi: ho aggiunto **userX** al gruppo docker, permettendoti di gestire i container senza sudo.
-- Verifica: ho  confermato con Ansible che Docker è attivo e risponde su entrambi i nodi.
+### Key Objectives Achieved:
+1. Automation: I successfully deployed the Docker Engine, CLI, and Compose plugins across both servers at once using a single playbook.
+2. Permission Hardening: I added userX to the docker group, allowing for container management without sudo, which is a requirement for seamless CI/CD integration.
+3. System Verification: I confirmed via Ansible that the Docker service is active, enabled on boot, and responding correctly on all lab nodes.
+4. The ansible.cfg file makes the project self-contained. If the project folder is moved or shared, the settings for the inventory and the remote user remain intact, ensuring that the playbooks always run in the same context.
+
+
+**Why i used the shorter command?**
+Once the ansible.cfg file is configured, the command becomes much simpler because Ansible now has a "default" behavior.
+
+Default Inventory: Since the path inventory/hosts.ini is defined inside ansible.cfg, Ansible automatically loads it. This makes the -i flag redundant.
+
+
+
+  
