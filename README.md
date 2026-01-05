@@ -58,5 +58,5 @@ The focus is on fundamentals, automation, and clarity, rather than production-sc
 4. Deploy containerized applications using **Docker**.
 5. Integrate cloud services (**AWS Codecommit and ECR**) with on-prem infrastructure.
 
-
-**ENRICO SOCI**
+<br> <br>
+                                                                                                                                                                                                  **ENRICO SOCI**
