@@ -2,37 +2,33 @@
 
 This repository contains a self-hosted DevOps lab built to practice real-world CI/CD concepts using modern DevOps tools.
 
-The entire environment is deployed on Proxmox and automated with Terraform and Ansible, while application delivery is handled through Jenkins, Docker, and AWS ECR.
+The lab environment is deployed on Proxmox and fully automated using Terraform and Ansible. CI/CD pipelines are implemented with Jenkins and Docker, leveraging AWS CodeCommit for source control and Amazon ECR for container image management
 
 ## Hardware Setup
 
-**Host machine**
 - Lenovo E73 .
-- Quad-core CPU @ 2.9 GHz.
+- Quad-core CPU @ 2.70 GHz.
 - 8 GB DDR3 RAM.
-- 250 GB SSD.
+- SAMSUNG EVO 860 SSD 250 GB.
 
 ## Technologies Used
 
-- Proxmox VE 
+- Proxmox Virtual Environment
 - Terraform 
 - Ansible 
 - Jenkins 
 - Docker
+- AWS CODECOMMIT
 - AWS ECR
-- Linux (Ubuntu)
+- Linux (Ubuntu server)
 
 
 ## Architecture
 
-1. Proxmox VE
-   Hosts all virtual machines.
-2. Infrastructure as Code
-   Terraform provisions VMs from templates.
-   Ansible bootstraps OS, networking, Docker, and users.
-3. **Jenkins Controller**: Manages pipelines, jobs, and credentials <br>
-**Jenkins Agent** (runtime node): Runs Docker and executes deployment steps locally.
-    Container Registry: AWS ECR stores application Docker images.
+1. **Proxmox VE** – Hosts all virtual machines.
+2. **Infrastructure as Code** – Terraform provisions VMs; Ansible bootstraps OS, networking, Docker, and users.
+3. **CI/CD & Registry** – Jenkins (controller/agent) handles pipelines; AWS ECR stores Docker images.
+
 
 ## CI/CD Workflow
 
