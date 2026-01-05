@@ -1,4 +1,4 @@
-# About Me
+# DevSecOps Lab – Automated Infrastructure and CI/CD
 
 ## About Me
 
@@ -8,6 +8,8 @@ This project was developed as part of my training to practice and consolidate sk
 
 This repository contains a self-hosted DevOps lab built to practice real-world CI/CD concepts using modern DevOps tools.
 The lab environment is deployed on Proxmox and fully automated using Terraform and Ansible. CI/CD pipelines are implemented with Jenkins and Docker, leveraging AWS CodeCommit for source control and Amazon ECR for container image management.
+
+The focus is on fundamentals, automation, and clarity, rather than production-scale complexity.
 
 ## Hardware Setup
 
@@ -27,7 +29,6 @@ The lab environment is deployed on Proxmox and fully automated using Terraform a
 - AWS ECR
 - Linux (Ubuntu server)
 
-
 ## Architecture
 
 1. **Proxmox VE** – Hosts all virtual machines.
@@ -35,29 +36,25 @@ The lab environment is deployed on Proxmox and fully automated using Terraform a
 3. **CI/CD & Registry** – Jenkins (controller/agent) handles pipelines; AWS ECR stores Docker images.
 
 
-## CI/CD Workflow
+## My CI/CD Workflow
 
-1. Application image is pushed to AWS ECR.
-2. Jenkins pipeline is triggered.
-3. Pipeline runs on the runtime agent.
-4. Jenkins authenticates to AWS ECR.
-5. Docker pulls the latest image.
-6. Existing container is replaced with the new version.
-7. Jenkins does not deploy via SSH.
-8. The pipeline runs directly on the agent node, following a production-like model.
+1. Code Push: I push code updates to my AWS CodeCommit repository, which serves as the secure starting point for my automated pipeline.
+2. Jenkins Trigger: I configured Jenkins to monitor my repository via SCM polling; it automatically detects my changes and triggers the automation process.
+3. Agent Execution: My pipeline executes on a dedicated Jenkins Runtime Agent that I provisioned using Terraform and configured with Ansible on my Proxmox cluster.
+4. Security Scanning: I integrated Trivy into the workflow to automatically perform a security audit of my Docker images, identifying vulnerabilities before any deployment occurs.
+5. Artifact Storage: Once the build and security checks pass, I push the verified Docker image—my deployment artifact—to my private AWS ECR registry.
+6. Image Pull: My runtime agent pulls the latest version of the application directly from AWS ECR, ensuring it always deploys the most recent verified image.
+7. Container Orchestration: I manage the container lifecycle by automatically replacing the existing container with the new version, ensuring a clean and reliable update of the web app.
+8. Local Execution Model: I designed the pipeline to run commands directly on the host machine via the Jenkins Agent; this follows a production-ready architecture that I built to avoid the security risks of SSH-based deployments.
 
 
 ## Learning Objectives
 
-1. Understand CI/CD pipelines and Jenkins agent architecture.
-2. Practice Infrastructure as Code with Terraform.
-3. Automate system configuration with Ansible.
-4. Deploy containerized applications using Docker.
-5. Integrate cloud services (AWS ECR) with on-prem infrastructure.
+1. Understand **CI/CD pipelines** and **Jenkins agent** architecture.
+2. Practice Infrastructure as Code with **Terraform**.
+3. Automate system configuration with **Ansible**.
+4. Deploy containerized applications using **Docker**.
+5. Integrate cloud services (**AWS Codecommit and ECR**) with on-prem infrastructure.
 
-## About This Project
-
-This lab represents my hands-on learning path toward a Junior DevOps role.
-The focus is on fundamentals, automation, and clarity, rather than production-scale complexity.
 
 **ENRICO SOCI**
