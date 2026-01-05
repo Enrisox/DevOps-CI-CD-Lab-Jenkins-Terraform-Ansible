@@ -82,33 +82,8 @@ NOTE: I configured the base template with a Dynamic IP (DHCP) to ensure it remai
 4. **System Shutdown**: I safely powered down VM 100 to prepare it for conversion.
 5. **Proxmox Template Conversion**: I converted the VM into a Proxmox Template.
 
-**Result: The VM icon changed to the Template icon, and the "Start" button was disabled.**
+**Result: The VM icon changed to the Template icon, and the "Start" button was disabled.** <br>
 **Purpose**: This template now acts as a "gold image", ensuring that all future VMs are identical and ready for automation.
-
-## Infrastructure as Code: Terraform Setup
-
-1. **Terraform Installation** (WSL): I installed Terraform within my WSL Ubuntu environment to manage the infrastructure as code. I added the official HashiCorp GPG key and repository to ensure a secure and up-to-date installation.
-
-
-```bash
-#Add HashiCorp GPG key
-wget -O- https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
-
-#Add the official repository
-echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/hashicorp.list
-
-#Install Terraform
-sudo apt update && sudo apt install terraform -y
-```
-
-2. **Verification**: I confirmed the successful installation by checking the version:
-
-```bash
-terraform -version
-#Output: Terraform v1.14.3 on linux_amd64
-```
-
-
 
 
 ------------------------------------------------------------------------------------------
