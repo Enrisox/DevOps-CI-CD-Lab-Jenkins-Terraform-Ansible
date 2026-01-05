@@ -10,7 +10,7 @@ Without an inventory, Ansible wouldn't know where to send the commands written i
 - **Variables**: I can define specific settings for a single host or an entire group (e.g., the SSH port or the user to be used).
 
 ## Most common formats
-1)**INI Format**  is the simplest to read and write, ideal for labs and quick configurations.
+**INI Format**  is the simplest to read and write, ideal for labs and quick configurations.
 
 ```bash
 [jenkins]
