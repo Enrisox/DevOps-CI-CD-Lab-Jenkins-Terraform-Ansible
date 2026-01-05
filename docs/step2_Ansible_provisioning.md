@@ -202,7 +202,7 @@ ansible-playbook -i inventory/hosts.ini playbooks/network-bootstrap.yml
 ```
 Although the two VMs already had their hostnames set during the Terraform creation process from the ID 100 clone, I used Ansible to enforce the system state **idempotently**. This ensures that hostnames and sudo policies remain correct regardless of the initial VM configuration.
 
-### what is Idempotentcy?**
+### what is Idempotentcy?
 **Terraform without idempotency:**
 terraform apply → creates 3 EC2
 terraform apply → creates 3 MORE EC2 (6 total!)
@@ -211,11 +211,8 @@ terraform apply → creates 3 MORE EC2 (6 total!)
 terraform apply → creates 3 EC2  
 terraform apply → 3 EC2 still there → "no changes"
 <br>
-**Questo è Infrastructure as Code**
 
-
-
-## STEP B
+## Docker playbook
 
 On BOTH VMs, my objectives were:
 
