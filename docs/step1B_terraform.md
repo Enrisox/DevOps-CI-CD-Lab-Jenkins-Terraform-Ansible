@@ -192,4 +192,27 @@ The Result:
 - WSL Access: Works (uses the correct key).
 - Windows CMD Access: Fails (tries to use a different, unauthorized key).
 
+**Option 1: Adding the Windows Key to the VM**
+nano ~/.ssh/authorized_keys
+**Alternatively, I can tell Windows to use the specific key stored within the WSL filesystem by using the -i (identity file) flag. This avoids the need to manage multiple keys.**
+ssh -i \\wsl$\Ubuntu\home\user\.ssh\id_ed25519 user@192.168.1.*
+
+## SSH Hardening: Disabling Password Authentication
+To finalize the security of my VMs and enforce key-based access, I disabled password logins. This ensures that only clients with a verified SSH key can access the system.
+
+**I edited the SSH daemon configuration file:**
+```bash
+sudo nano /etc/ssh/sshd_config
+```
+**Inside the file, I applied the following changes:**
+
+- PasswordAuthentication set to no.
+- PubkeyAuthentication set to yes.
+
+**After saving the file, I restarted the SSH service to apply the new security settings:**
+
+```bash
+sudo systemctl restart ssh
+```
+
 
