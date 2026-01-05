@@ -327,3 +327,21 @@ stage('Deploy') {
 - Deploy idempotente
 
 Il deploy è idempotente perché ogni esecuzione rimuove eventuali istanze esistenti e riporta il sistema allo stato desiderato, indipendentemente dallo stato iniziale.
+
+
+## Automation with SCM Polling
+
+To achieve full automation,**the pipeline is configured with SCM Polling**. This allows Jenkins to autonomously monitor the AWS CodeCommit repository without requiring external webhooks.
+SCM Polling (Source Control Management Polling) is a trigger mechanism used in CI/CD tools like Jenkins to automatically start a pipeline whenever a change is detected in the source code.
+
+- Instead of waiting for the Git server (such as AWS CodeCommit or GitHub) to notify it, Jenkins takes the initiative.
+- Jenkins periodically "interrogates" the repository at regular intervals.
+- Commit Check: It asks the repository: "Are there any new commits since the last time I checked?".
+- Automatic Trigger: If the answer is Yes, Jenkins downloads the code and starts the pipeline.
+- Standby: If the answer is No, Jenkins does nothing and waits for the next scheduled interval.
+
+**Polling** is configured using **cron syntax**. For example, the instruction **H/5 * * * * tells Jenkins to check the repository every 5 minutes. 
+**Using the hash symbol (H) is a fundamental best practice for several reasons:**
+
+- Load Balancing: It distributes requests over time instead of concentrating them all at once.
+- Stability: It prevents the Jenkins VM from slowing down or crashing by avoiding too many simultaneous connections to AWS CodeCommit.
