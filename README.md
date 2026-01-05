@@ -2,8 +2,7 @@
 
 ## About Me
 
-My name is **Enrico Soci**.  
-I am a second-year student at the **ITS Academy Olivetti**, enrolled in the course **“Tecnico per la sicurezza e l’integrazione dei sistemi informativi – DevSecOps”**.
+My name is **Enrico Soci** and I am a second-year student at the **ITS Academy Olivetti**, enrolled in the course **“Information Systems Security & Integration Specialist – DevSecOps”**.
 This project was developed as part of my training to practice and consolidate skills in **DevSecOps tools and methodologies**, including automation, infrastructure management, CI/CD pipelines, and containerized environments.
 
 This repository contains a self-hosted DevOps lab built to practice real-world CI/CD concepts using modern DevOps tools.
