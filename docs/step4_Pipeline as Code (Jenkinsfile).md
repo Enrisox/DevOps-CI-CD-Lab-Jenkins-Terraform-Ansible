@@ -9,6 +9,7 @@
 
 
 **Test Pipeline**
+![Runtime Test](../imgs/runtime_test.png)
 
 ```bash
 pipeline {
@@ -60,6 +61,7 @@ You should see something like aws-cli/2.x.x. If you see this, your node is final
 - **Container Run**: The application will be launched directly on your runtime node.
 
 ## Creating a IAM user in my AWS account to obtain the secret access keys
+![Jenkins AWS Plugin](../imgs/jenkins_aws_plugin.png)
 
 **Install the AWS Plugin**
 
@@ -71,7 +73,8 @@ You should see something like aws-cli/2.x.x. If you see this, your node is final
 6. Click the Install button.
 
 
-**We need to generate a key pair: Access Key ID and Secret Access Key.**
+## generate a key pair: Access Key ID and Secret Access Key.
+![IAM User Jenkins](../imgs/IAM-USER_jenkins.png)
 
 1. Log in to the AWS Console and search for the IAM service.
 2. In the left menu, click on Users and then on Create user.
@@ -80,7 +83,9 @@ You should see something like aws-cli/2.x.x. If you see this, your node is final
 5. Search for and select the policy: AmazonEC2ContainerRegistryReadOnly. This policy allows Jenkins to see and pull images, but not to delete them or upload new ones, which increases security.
 6. Complete the user creation.
 7. Once the user is created, click on their name, go to the Security credentials tab, and click on Create access key.
-8. Select the Command Line Interface (CLI) use case and proceed until you get the two codes.
+8. Select the Command Line Interface (CLI) use case and proceed until you get the two codes.<br>
+
+![IAM User Jenkins 2](../imgs/IAM-USER_jenkins2.png)
 
 ## Saving the IAM user credentials in Jenkins Global Credentials
 
@@ -94,15 +99,16 @@ You should see something like aws-cli/2.x.x. If you see this, your node is final
 
 
 ## Creating a pipeline that pulls an image from my CodeCommit repo in AWS
+![Pipeline Success](../imgs/pipeline_success1.png)
 
 Prepare the credentials for CodeCommit.
 To allow Jenkins to read from CodeCommit, you need specific **Git credentials**:
 
 1. Go to IAM in AWS > Users > select your jenkins-runtime user.
 2. Go to the Security credentials tab.
-3. Scroll down to HTTPS Git credentials for AWS CodeCommit and click on Generate credentials.
-4. Save the Username and Password.
-5. On Jenkins, add these credentials (Username with password type) with the ID codecommit-creds.
+3. Scroll down to **HTTPS Git credentials for AWS CodeCommit** and click on **Generate credentials**.
+4. **Save the Username and Password**.
+5. On Jenkins, add these credentials (Username with password type) with the ID **codecommit-creds**.
 
 
 ```bash
