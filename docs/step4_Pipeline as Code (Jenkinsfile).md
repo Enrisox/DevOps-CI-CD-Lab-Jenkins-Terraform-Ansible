@@ -1,4 +1,5 @@
 # Pipeline as Code (Jenkinsfile)
+![Pipeline](../imgs/pipeline-jenkins.png)<br>
 
 1. From the Jenkins dashboard  --> new element.
 2. Create a Pipeline.
