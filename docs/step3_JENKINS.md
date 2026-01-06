@@ -1,4 +1,6 @@
 # JENKINS Configuration and installation 
+![Jenkins Status](imgs/jenkins_image.png)
+
 **What is Jenkins?** <br>
 
 **Jenkins** is an automation server (typically self‑hosted) used mainly for CI/CD: you define a “pipeline” that executes builds, tests, scans, packaging, and deployment when an event occurs (push, PR, cron, manual) or when you decide.
@@ -28,7 +30,6 @@ https://github.com/Enrisox/Secure-Home-Lab-Docker
 
 To ensure the reliability of my CI environment, I started by configuring a **persistent volume**. <br>
 This means that if I delete the container or restart the VM, my Jenkins jobs, plugins, and configurations will not be lost because they are saved directly on the VM's filesystem at /home/enrico/jenkins_home
-
 
 1)**I created the playbooks/deploy-jenkins.yml file to automate the entire setup**
 
@@ -65,8 +66,6 @@ nano playbooks/deploy-jenkins.yml
         env:
           JAVA_OPTS: "-Djenkins.install.runSetupWizard=true"
 ```
-
-
 ## Ansible Galaxy
 I used Ansible Galaxy, which is the official repository for Ansible roles and collections. A collection is a package that contains modules, plugins, and roles specific to a certain domain.
 
@@ -79,6 +78,7 @@ ansible-playbook playbooks/deploy-jenkins.yml  # Running the Jenkins deployment 
 This command downloads the latest modules for managing Docker containers, images, networks, volumes, and Compose files. It stores them in ~/.ansible/collections or within the project's collections/ folder.
 
 ## Post-Deployment: Accessing Jenkins
+![Jenkins Status](imgs/jenkins3.png)<br>
 
 Once the playbook finished with an "OK" status, Jenkins was active and running. Here is how I proceeded with the initial setup:
 
@@ -92,7 +92,6 @@ ansible ci -a "cat /home/enrico/jenkins_home/secrets/initialAdminPassword"
 This is a temporary file created by Jenkins during the first boot. It acts as a security measure to ensure that only the person with administrative access to the server filesystem can perform the initial configuration.
 
 **Finalizing Setup**: I pasted the password into the browser and selected "Install suggested plugins" to complete the basic configuration.
-
 
 # Agent Node (Runtime) Configuration
 
@@ -130,6 +129,7 @@ java -version                          #verifies installation
 ```
 
 ## Node creation from Jenkins interface http://ip_VM_Jenkins(CI)
+![Add Jenkins Node](imgs/jenkins_node-add.png) <br>
 
 1. Go to Manage Jenkins > Nodes.
 2. Click on + New Node on the left.
@@ -139,10 +139,12 @@ java -version                          #verifies installation
 6. Launch method: Select Launch agents via SSH.
 7. Host: Static IP of the runtime VM: e.g.: 192.168.1.8.
 
+![New Node Configuration](../new-node.png)
 **Credentials:**
+![Node 1 Status](../imgs/node1.png) <br>
 
-1. Clicl  on Add > Jenkins.
-2. Kind: select SSH Username with private key.
+1. Click on Add > Jenkins.
+2. type: select SSH Username with private key.
 3. Username: userX.
 4. Private Key: select Enter directly, then click Add and paste the private key you can see with this command:
 
@@ -154,7 +156,9 @@ ansible ci -a "cat /home/userX/jenkins_home/jenkins_key"
 7. I selected the credentials I just created from the Credentials dropdown menu.
 8. Host Key Verification Strategy: I changed it to **Non verifying Verification Strategy** (to skip the manual check of the SSH fingerprint).
 9. Save
+<br>
 
+![New Node Configuration](../imgs/new-node.png) <br>
 
 NOTE: Why I chose to skip the host Key Verification?
 I chose to skip this verification for three main reasons:
