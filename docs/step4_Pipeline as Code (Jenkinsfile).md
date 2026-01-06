@@ -2,7 +2,7 @@
 
 1. From the Jenkins dashboard  --> new element.
 2. Create a Pipeline.
-3. name: Verifica-Ambiente-Runtime.
+3. Name: Verifica-Ambiente-Runtime.
 4. Select Pipeline and click OK.
 5. scroll to the bottom to the Pipeline section and past a pipeline code like the one I used below:
 
@@ -25,6 +25,7 @@ pipeline {
     }
 }
 ```
+Java is the core engine that allows Jenkins to "exist" and execute tasks on machine .8. If you remove Java, the node will immediately appear as Offline in the Jenkins UI.
 
 ## continuous deployment pipeline (CD)
 Since the node is ready, we can create a pipeline that simulates a real deployment. This pipeline will clean up any old containers and launch a web application..
@@ -200,9 +201,9 @@ I defined an environment block to manage reusable variables:
 
 ```bash
 environment {
-    AWS_ACCOUNT_ID = '266735824805'
-    AWS_REGION     = 'eu-west-1'
-    REPO_NAME      = 'quiz-app'
+    AWS_ACCOUNT_ID = '***********'
+    AWS_REGION     = 'eu*******'
+    REPO_NAME      = '*******'
     ECR_URL = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
 }
 ```
