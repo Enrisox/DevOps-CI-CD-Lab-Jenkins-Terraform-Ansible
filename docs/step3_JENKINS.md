@@ -77,7 +77,7 @@ ansible-playbook playbooks/deploy-jenkins.yml  # Running the Jenkins deployment 
 This command downloads the latest modules for managing Docker containers, images, networks, volumes, and Compose files. It stores them in ~/.ansible/collections or within the project's collections/ folder.
 
 ## Post-Deployment: Accessing Jenkins
-![Jenkins Status](imgs/jenkins3.png)<br>
+![Jenkins Status](../imgs/jenkins3.png)<br>
 
 Once the playbook finished with an "OK" status, Jenkins was active and running. Here is how I proceeded with the initial setup:
 
@@ -128,7 +128,7 @@ java -version                          #verifies installation
 ```
 
 ## Node creation from Jenkins interface http://ip_VM_Jenkins(CI)
-![Add Jenkins Node](imgs/jenkins_node-add.png) <br>
+![Add Jenkins Node](../imgs/jenkins_node-add.png) <br>
 
 1. Go to Manage Jenkins > Nodes.
 2. Click on + New Node on the left.
