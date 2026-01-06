@@ -1,115 +1,106 @@
 # Pipeline as Code (Jenkinsfile)
 
-1. Da dashboard Jenkins --> nuovo elemento
-2. creiamo una Pipeline. Questo ci dirà se il nodo runtime è davvero pronto per il lavoro serio.
-3. Dalla Dashboard di Jenkins, clicca su Nuovo elemento (New Item).
-4. Nome: Verifica-Ambiente-Runtime.
-5. Seleziona Pipeline e clicca su OK.
-6. Scorri fino in fondo alla sezione Pipeline e incolla questo codice:
-7. Clicca su compila ora a SX.
+1. From the Jenkins dashboard  --> new element.
+2. Create a Pipeline.
+3. name: Verifica-Ambiente-Runtime.
+4. Select Pipeline and click OK.
+5. scroll to the bottom to the Pipeline section and past a pipeline code like the one I used below:
 
-**Prima pipeline di prova**
+
+**Test Pipeline**
 
 ```bash
 pipeline {
-    agent { label 'runtime' } // Forza l'esecuzione sul tuo nodo .8
+    agent { label 'runtime' }
 
     stages {
-        stage('Verifica Requisiti') {
+        stage('Check Environment') {
             steps {
-                echo 'Verifico la versione di Java...'
+                echo 'Checking Docker and Java on the Runtime Node...'
                 sh 'java -version'
-                
-                echo 'Verifico se Docker è installato e funzionante...'
-                sh 'docker version'
-                
-                echo 'Verifico i permessi dell utente...'
-                sh 'groups'
+                sh 'docker --version'
+                sh 'hostname -I'
             }
         }
     }
 }
 ```
 
-- Java: Se Jenkins è online, sappiamo che c'è, ma questo conferma la versione.
-- Docker Version: Se questo comando fallisce, il tuo script di bootstrap non ha installato Docker.
-- Groups: Se nell'output non vedi la parola docker, Jenkins non avrà i permessi per lanciare container e dovrai aggiungerlo al gruppo.
+## continuous deployment pipeline (CD)
+Since the node is ready, we can create a pipeline that simulates a real deployment. This pipeline will clean up any old containers and launch a web application..
 
-## Pipeline di Continuous Deployment (CD)
-Visto che il nodo è pronto, creiamo una pipeline che simula un vero deploy. Questa pipeline pulirà eventuali vecchi container e lancerà un'applicazione web.
+**Installing AWS CLI v2 on the Runtime Node**
 
-**installare AWS CLI v2 sul nodo runtime**
-
-Per scompattare l'installatore di AWS, serve **unzip**. Eseguilo sul terminale del nodo:
+To unpack the AWS installer, you need **unzip**. Run this on your node's terminal:
 
 ```bash
 sudo apt update && sudo apt install unzip curl -y
 ```
-## Scarica e installa AWS CLI v2
-Copia e incolla questi tre comandi uno alla volta:
+## Download and Install AWS CLI v2
+Copy and paste these three commands one at a time:
 
 ```bash
-curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"  # scarica il pacchetto ufficiale
-unzip awscliv2.zip        #Estrai i file
-sudo ./aws/install        #Esegui l'installazione
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"  # Download the official package
+
+unzip awscliv2.zip        # Extract the files
+
+sudo ./aws/install        # Run the installation
 ```
-**Verifica l'installazione**
+**Verify the installation**
 ```bash
 aws --version
 ```
-Dovresti vedere qualcosa come aws-cli/2.x.x. Se lo vedi, il nodo è finalmente pronto per parlare con ECR.
+You should see something like aws-cli/2.x.x. If you see this, your node is finally ready to communicate with ECR.<br>
+**How the Pipeline works:**
 
-- Login ad ECR: La pipeline userà il comando aws ecr get-login-password per autenticare Docker verso AWS.
-- Pull dell'immagine: Docker scaricherà la tua immagine specifica dalla tua repo ECR.
-- Run del container: L'app verrà lanciata sul nodo runtime
+- **ECR Login**: Your pipeline will use the aws ecr get-login-password command to authenticate Docker with AWS.
+- **Image Pull**: Docker will download your specific image from your ECR repository.
+- **Container Run**: The application will be launched directly on your runtime node.
 
-## creazione user nel mio aws per ottenere le chiavi
+## Creating a IAM user in my AWS account to obtain the secret access keys
 
-**Installa il Plugin AWS**
+**Install the AWS Plugin**
 
-1. Dalla dashboard principale di Jenkins, clicca su rotellina
-2. Clicca su Plugins (o Manage Plugins).
-3. Vai nella scheda Available plugins (Plugin disponibili) in alto.
-4. Nella barra di ricerca a destra, scrivi: AWS Credentials.
-5. Spunta la casella del plugin AWS Credentials (solitamente l'autore è CloudBees o Jenkins Project).
-6. Clicca sul tasto Install
+1. From the main Jenkins dashboard, click on the gear icon (Manage Jenkins)
+2. Click on Plugins (or Manage Plugins).
+3. Go to the Available plugins tab at the top..
+4. In the search bar on the right, type: AWS Credentials.
+5. Check the box for the AWS Credentials plugin (usually authored by CloudBees or the Jenkins Project).
+6. Click the Install button.
 
 
-**Bisogna generare una coppia di chiavi: Access Key ID e Secret Access Key.**
+**We need to generate a key pair: Access Key ID and Secret Access Key.**
 
-1. Accedi alla Console AWS e cerca il servizio IAM.
-2. Nel menu a sinistra, clicca su Users (Utenti) e poi su Create user.
-3. Assegna un nome (es: jenkins-runtime-user). Non selezionare l'accesso alla console web; questo utente serve solo per l'accesso programmatico (API).
-4. Nella schermata dei permessi (Set permissions), seleziona Attach policies directly.
-5. Cerca e seleziona la policy: AmazonEC2ContainerRegistryReadOnly. Questa policy permette a Jenkins di vedere le immagini e scaricarle (pull), ma non di cancellarle o caricarne di nuove, aumentando la sicurezza.
-6. Completa la creazione dell'utente.
-7. Una volta creato l'utente, clicca sul suo nome, vai nella scheda Security credentials e clicca su Create access key.
-8. Seleziona il caso d'uso Command Line Interface (CLI) e vai avanti fino a ottenere i due codici.
+1. Log in to the AWS Console and search for the IAM service.
+2. In the left menu, click on Users and then on Create user.
+3. Assign a name (e.g., jenkins-runtime-user). Do not select web console access; this user is only for programmatic access (API).
+4. On the Set permissions screen, select Attach policies directly.
+5. Search for and select the policy: AmazonEC2ContainerRegistryReadOnly. This policy allows Jenkins to see and pull images, but not to delete them or upload new ones, which increases security.
+6. Complete the user creation.
+7. Once the user is created, click on their name, go to the Security credentials tab, and click on Create access key.
+8. Select the Command Line Interface (CLI) use case and proceed until you get the two codes.
 
-## salviamo credentiazli iam user appena creato, su jenkins credentials globali
+## Saving the IAM user credentials in Jenkins Global Credentials
 
-1. impostazioni --> credentials --> global --> aggiungi una credential
-2. Type: AWS Credentials
+1. Go to Manage Jenkins > Credentials > System > Global credentials (unrestricted) > Add Credentials.
+2. Type: AWS Credentials.
 3. ID: aws-ecr-creds.
-4. Description: Una descrizione a tua scelta (es. "Chiavi per AWS ECR").
-5. Access Key ID: Incolla il codice che inizia con AKIA... che hai preso da AWS IAM.
-6. Secret Access Key: Incolla la tua chiave segreta lunga.
-7. Salva credential
+4. Description: A description of your choice (e.g., "Keys for AWS ECR").
+5. Access Key ID: Paste the code starting with AKIA... that you got from AWS IAM.
+6. Secret Access Key: Paste your long secret key.
+7. Save the credentials.
 
 
-## Creo una pipeline che pulla un' image dalla mia repo su CodeCommit in AWS 
+## Creating a pipeline that pulls an image from my CodeCommit repo in AWS
 
-Prepara le credenziali per CodeCommit
-Per permettere a Jenkins di leggere da CodeCommit, hai bisogno di credenziali Git specifiche:
+Prepare the credentials for CodeCommit.
+To allow Jenkins to read from CodeCommit, you need specific **Git credentials**:
 
-1. Vai in IAM su AWS > Utenti > seleziona il tuo utente jenkins-runtime.
-2. Vai nella scheda Security credentials (Credenziali di sicurezza).
-3. Scendi fino a HTTPS Git credentials for AWS CodeCommit e clicca su Generate credentials.
-4. Salva lo Username e la Password.
-5. Su Jenkins, aggiungi queste credenziali (tipo Username with password) con l'ID codecommit-creds
-
-
-
+1. Go to IAM in AWS > Users > select your jenkins-runtime user.
+2. Go to the Security credentials tab.
+3. Scroll down to HTTPS Git credentials for AWS CodeCommit and click on Generate credentials.
+4. Save the Username and Password.
+5. On Jenkins, add these credentials (Username with password type) with the ID codecommit-creds.
 
 
 ```bash
@@ -187,51 +178,27 @@ pipeline {
 }
 ```
 
-### sicurezza
+### Security
 
-- Segretezza delle Credenziali: Le tue chiavi AWS (AKIA...) non appaiono mai nel log di Jenkins né nello script. Sono protette dal plugin Credentials che le "maschera" (vedresti solo **** nei log).
-- Principio del Minimo Privilegio: L'utente IAM che abbiamo creato ha solo il permesso ReadOnly. Anche se qualcuno rubasse quelle chiavi, potrebbe solo scaricare le immagini, ma non potrebbe cancellare i tuoi database o creare nuove macchine costose su AWS.
-- Autenticazione Effimera: Usando get-login-password, non salviamo la password di Docker sul disco in modo permanente. Il login è valido solo per quella specifica sessione di lavoro.
+- **Credential Secrecy**: Your AWS keys (AKIA...) never appear in the Jenkins logs or in the script. They are protected by the Credentials plugin, which masks them (you would only see **** in the logs).
+- **Principle of Least Privilege**: The IAM user you created has ReadOnly permissions only. Even if someone were to steal those keys, they could only download images; they wouldn't be able to delete your databases or create expensive new machines on AWS.
+- **Ephemeral Authentication**: By using get-login-password, you aren't saving the Docker password permanently on the disk. The login is only valid for that specific working session.
 
-1)**BLOCCO AGENT**
+## Jenkins Pipeline Architecture & CD Implementation
 
-**agent { label 'runtime' }** in una Jenkins Pipeline significa: “Questo stage (o l’intera pipeline) deve girare su un agent Jenkins che ha l’etichetta runtime”, cioè su una macchina registrata come worker (nel tuo caso la VM 192.168.1.8), non sul controller. In Jenkins il controller orchestra e schedula, mentre l’agent esegue davvero comandi, build, docker, ecc.
+**1. The Agent Model (Architecture)**
+In my pipeline, I used agent { label 'runtime' }. This means the entire workflow runs on my worker VM (192.168.1.8) rather than the controller.
+I chose not to have the controller "log in" via SSH to the server. That approach is fragile and requires open inbound ports.
 
-**Modello “SSH da controller” vs “agent runtime”**
+My runtime VM runs a **Jenkins agent process**. It establishes an outgoing connection to the controller (pull model). This ensures a clean separation of roles: the Controller handles scheduling and UI, while the Agent handles execution and local resources (Docker socket, filesystem).
 
-**Modello SSH (anti-pattern tipico)**
-Il controller esegue uno step tipo ssh runtime "docker pull ... && docker compose up -d".
+- Scalability: By using labels, I can easily add more runtime nodes in the future without changing my Jenkinsfile logic.
 
-Quindi il controller deve avere:
+**2. Environment Configuration**
+I defined an environment block to manage reusable variables:
 
-chiavi SSH/credenziali per entrare in runtime,
-rete aperta verso runtime (SSH in ingresso sul runtime, firewall più permissivo),
-logica di deploy “remota” fragile (timeout SSH, chiavi, jump host, ecc.).
-Problema tecnico principale: stai trasformando il controller in una macchina “che entra nei server”
 
-**Modello agent**
-La VM runtime esegue un processo “agent” Jenkins.
-
-- L’agent si connette al controller e resta in ascolto di job (concetto: pull model / connessione uscente).
-- Quando nel Jenkinsfile metti agent { label 'runtime' }, Jenkins:
-- trova un agent online con quell’etichetta e prepara workspace lì, invia lo script dei passaggi,
-- i comandi (es. docker pull, docker compose up) girano localmente sulla VM runtime.
-
-**Separazione netta dei ruoli (control plane vs data plane)**
-- **Controller**: decisioni, scheduling, UI, credenziali centralizzate, audit pipeline.
-- **Runtime agent**: esecuzione dei comandi e accesso alle risorse locali (socket Docker, filesystem, rete).
-
-### Scalabilità e ripetibilità
-Con label:
-
-- aggiungi altri runtime node (es. runtime-1, runtime-2) con la stessa label e Jenkins bilancia.
-- se domani passi da una VM a tre VM o a un cluster, l’idea rimane identica: il Jenkinsfile non deve diventare un groviglio di ssh
-
-**Sposto l’esecuzione sul nodo target via agent, uso connessioni uscenti e riduco la necessità di credenziali di accesso remoto; il controllo resta nel sistema CI con audit e permessi.**
-
-2)**BLOCCO ENVIROMENT**
 ```bash
-
 environment {
     AWS_ACCOUNT_ID = '266735824805'
     AWS_REGION     = 'eu-west-1'
@@ -239,100 +206,45 @@ environment {
     ECR_URL = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
 }
 ```
+Using these variables allowed me to avoid hardcoding values, making the pipeline cleaner and much easier to maintain.
 
-**Definisce variabili riutilizzabili:**
+**3. Pipeline Stages**
 
-- Account AWS
-- Regione (Irlanda)
-- Nome repo ECR
-- URL completo del registry
+**A. Checkout & Unit Tests**
+First, I configured the pipeline to clone the repository from my AWS CodeCommit repo directly onto the runtime node. Once the code was available, I executed Unit Tests using pytest. I used a Python virtual environment to install dependencies and verify that the app returns a 200 OK status before moving forward.
 
-Evita hardcoding nei comandi
-Pipeline più leggibile e manutenibile
+B. **ECR Login**
+I implemented the ECR Login stage using the aws-ecr-creds stored in Jenkins.
 
-## 3)Checkout from CodeCommit
+I used aws ecr get-login-password to retrieve a temporary token.
+**Security: This avoids saving passwords in plain text and follows AWS best practices for ephemeral authentication.**
 
-1. Jenkins clona il repository AWS CodeCommit
-2. Il codice viene copiato fisicamente sul nodo runtime
+**C. Pull & Security Scan**
 
-**Ora Jenkins ha accesso a:**
+I pulled the latest image from my ECR repository. Before deployment, I added a security step: scanning the image with **Trivy**. This ensures that I am not deploying containers with known high-risk vulnerabilities. 
+**I integrated Trivy into this workflow as I was already familiar with it, having used it for the same purpose in my previous DevOps project**  --> click on the link to read it 
 
-- requirements.txt
-- cartella tests/
-- codice applicativo
+https://github.com/Enrisox/Secure-Home-Lab-Docker/blob/main/docs/step12_HARDENING_CONTAINERS.md
 
-## 4)Unit Tests
-
-**Nella mia repository c'è il file /tests/test_app.py per i tests con pytest**
-```bash
-import sys
-from pathlib import Path
-ROOT = Path(__file__).resolve().parent.parent
-sys.path.append(str(ROOT))
-
-from app import app
-
-def test_index_returns_200():
-    client = app.test_client()
-    response = client.get("/")
-    assert response.status_code == 200
-```
-- Crea un virtual environment Python
-- Installa le dipendenze
-- Esegue i test con pytest
-- 
-**5)STAGE ECR LOGIN**
-```bash
-
-Stage: ECR Login
-stage('ECR Login') {
-    withCredentials([...]) {
-        sh "aws ecr get-login-password | docker login ..."
-    }
-}
-```
-
-1. Usa credenziali AWS salvate in Jenkins (aws-ecr-creds)
-2. Recupera un token temporaneo da ECR
-3. Fa login Docker verso AWS ECR
-
-👉 Non salvi password in chiaro
-👉 Sicurezza corretta
-👉 Best practice AWS
-
-**4)Pull & Scan Image**
-```bash
-stage('Pull & Scan Image') {
-    steps {
-        echo "Download immagine da ECR..."
-        sh "docker pull ${ECR_URL}/${REPO_NAME_ECR}:latest"
-
-        echo 'Scansione sicurezza con Trivy...'
-        sh "docker run ... trivy image ..."
-    }
-}
-```
-
-**5)Stage: Deploy Container**
+**D. Idempotent Deployment**
+I defined the Deploy stage:
 
 ```bash
-stage('Deploy') {
-    steps {
-        sh "docker rm -f quiz-app-container || true"
-        sh "docker run -d --name quiz-app-container -p 8080:5000 ${ECR_URL}/${REPO_NAME_ECR}:latest"
-    }
-}
+sh "docker rm -f quiz-app-container || true"
+sh "docker run -d --name quiz-app-container -p 8080:5000 ${ECR_URL}/${REPO_NAME}:latest"
 ```
-- Ferma e rimuove il container esistente
-- Deploy idempotente
+I designed this stage to be **idempotent**: it automatically stops and removes any existing container before starting the new one. This ensures the system always reaches the desired state regardless of its starting condition.
 
-Il deploy è idempotente perché ogni esecuzione rimuove eventuali istanze esistenti e riporta il sistema allo stato desiderato, indipendentemente dallo stato iniziale.
+In DevOps and automation, **Idempotence** is the property of an operation that can be applied multiple times without changing the result beyond the initial application.
 
+1. **Predictability**: No matter how many times I trigger the pipeline, the final state of the Runtime node will be the same: one single instance of the application running on port 8080.
+2. **Error Handling**: By using || true, I ensure that the script doesn't crash if the container isn't there (for example, during the very first deployment).
+3. **Reliability**: It eliminates "configuration drift," ensuring that the environment always matches the specifications defined in my Jenkinsfile.
 
 ## Automation with SCM Polling
 
 To achieve full automation,**the pipeline is configured with SCM Polling**. This allows Jenkins to autonomously monitor the AWS CodeCommit repository without requiring external webhooks.
-SCM Polling (Source Control Management Polling) is a trigger mechanism used in CI/CD tools like Jenkins to automatically start a pipeline whenever a change is detected in the source code.
+**SCM Polling (Source Control Management Polling)** is a trigger mechanism used in CI/CD tools like Jenkins to automatically start a pipeline whenever a change is detected in the source code.
 
 - Instead of waiting for the Git server (such as AWS CodeCommit or GitHub) to notify it, Jenkins takes the initiative.
 - Jenkins periodically "interrogates" the repository at regular intervals.
@@ -343,5 +255,5 @@ SCM Polling (Source Control Management Polling) is a trigger mechanism used in C
 **Polling** is configured using **cron syntax**. For example, the instruction **H/5 * * * * tells Jenkins to check the repository every 5 minutes. 
 **Using the hash symbol (H) is a fundamental best practice for several reasons:**
 
-- Load Balancing: It distributes requests over time instead of concentrating them all at once.
-- Stability: It prevents the Jenkins VM from slowing down or crashing by avoiding too many simultaneous connections to AWS CodeCommit.
+- **Load Balancing**: It distributes requests over time instead of concentrating them all at once.
+- **Stability**: It prevents the Jenkins VM from slowing down or crashing by avoiding too many simultaneous connections to AWS CodeCommit.
