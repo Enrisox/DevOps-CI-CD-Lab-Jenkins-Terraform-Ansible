@@ -159,6 +159,8 @@ ansible ci -a "cat /home/userX/jenkins_home/jenkins_key"
 9. Save
 <br>
 
+!["2-Jenkins-nodes(../imgs/two-nodes.png)
+
 NOTE: Why I chose to skip the host Key Verification?
 I chose to skip this verification for three main reasons:
 
