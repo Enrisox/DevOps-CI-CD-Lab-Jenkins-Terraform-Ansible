@@ -20,6 +20,10 @@ Architectures: amd64
 
 1. **User synchronization**: I created a new system user using the adduser command and aligned it with the Proxmox Web GUI (accessible via https://[IP]:8006). By replicating the username and password in the Proxmox authentication system, I ensured consistent permissions across both the OS and the virtualization management layer.
 2. **VM provisioning & network setup**: I provisioned a base Ubuntu Server VM, allocating 1 CPU core and 2 GB of RAM. Initially, I performed a manual network configuration to verify connectivity within the lab environment before moving toward full automation.
+<br>
+![Proxmox VM OS Settings](../imgs/img3%20(2).png)
+<br>
+
 3. **Cloud-Init image acquisition**: I downloaded the Ubuntu Cloud-Init (cloudimg) ISO directly to the local Proxmox storage to serve as the foundation for my automation templates. <br>
 
 
@@ -33,8 +37,10 @@ I implemented a **Cloud-Init drive**, which is the essential for my Terraform an
 - **User account & password**: I configured a primary user with a password as a fallback for local console access and to authorize administrative (sudo) operations.
 - **Networking**: I assigned a static IP address to ensure the VM is reachable at a predictable address.
 
+<br>
 
 ![Cloud-Init Configured Parameters](../imgs/cloud_init.png) <br>
+<br>
 
 ## Template Creation Commands
 I used the QEMU Manager (qm)(the native Proxmox CLI utility), to provision the base templates. This approach allowed me to script the initial VM configuration, ensuring a repeatable and consistent baseline for the subsequent Terraform-led automation.
@@ -82,10 +88,12 @@ ssh-keygen -R <ip>
 
 ## Cloud-Init Configuration & Template Conversion
 
-![Proxmox VM OS Settings](../imgs/img3%20(2).png)
-
 1. **Cloud-Init Customization**: I configured the Cloud-Init parameters with my designated username, password, and the previously generated SSH key. I also set the DNS domain to .lan and the DNS server to 1.1.1.1.
 2. **IP Assignment**: For the template baseline, I selected a DHCP to ensure maximum flexibility when cloning new instances.
+<br>
+
+![Final Ubuntu Template](../imgs/img4.png)
+<br>
 
 NOTE: I configured the base template with a Dynamic IP (DHCP) to ensure it remains a generic and reusable 'gold image'. However, during the deployment phase, I used Terraform to inject Static IPs into each instance. This ensures that critical infrastructure components—like the Monitoring stack (.7) and the Jenkins Agent (.8) always reside at fixed addresses for reliable communication.
 
@@ -95,8 +103,6 @@ NOTE: I configured the base template with a Dynamic IP (DHCP) to ensure it remai
 
 **Result: The VM icon changed to the Template icon, and the "Start" button was disabled.** <br>
 **Purpose**: This template now acts as a "gold image", ensuring that all future VMs are identical and ready for automation.
-
-![Final Ubuntu Template](../imgs/img4.png)
 
 ### Disable password auth access
 
