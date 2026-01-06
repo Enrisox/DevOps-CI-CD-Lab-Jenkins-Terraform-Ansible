@@ -1,9 +1,9 @@
-# Proxmox Installation & Initial Setup
+## Proxmox Installation & Initial Setup
 
-1. **Hardware Boot**: I installed Proxmox using a USB flash drive containing the ISO image. I accessed the BIOS by pressing F1 and configured the USB drive as the primary boot device.
-2. **System Configuration**: I proceeded with the graphical installation mode, where I assigned a static IP address, defined the system hostname, and set the root password.
-3. **Repository Cleanup**: After the first boot, I ran apt update and apt upgrade. To resolve errors caused by the lack of a commercial license, I deleted the enterprise-only repository entries in both /etc/apt/sources.list.d/ceph.sources and /etc/apt/sources.list.d/pve-enterprise.sources.
-4. **No-Subscription Repository**: I then configured the community-supported repository by creating a new file with nano /etc/apt/sources.list.d/pve-no-subscription.sources and adding the appropriate repository URL to enable system updates.
+1. **Hardware Boot**: I installed Proxmox using a USB flash drive containing the ISO image. I accessed the BIOS (F1) and set the USB drive as the primary boot device.
+2. **System Configuration**: I proceeded with the graphical installation mode, where I assigned a static IP address, defined the system hostname, and configured the root password.
+3. **Repository Cleanup**: After the first boot, I executed apt update and apt upgrade. To resolve errors caused by the lack of a commercial license, I removed the enterprise-only repository entries from both /etc/apt/sources.list.d/ceph.sources and /etc/apt/sources.list.d/pve-enterprise.sources.
+4. **No-Subscription Repository**: I configured the community-supported repository by creating a new source file (/etc/apt/sources.list.d/pve-no-subscription.sources) and added the appropriate repository URL to enable system updates.
 ```bash
 nano /etc/apt/sources.list.d/pve-no-subscription.sources 
 ```
