@@ -95,7 +95,7 @@ provider "proxmox" {
 
 }
 ```
-
+**Create main.tf**
 ```bash
 nano main.tf
 ```
