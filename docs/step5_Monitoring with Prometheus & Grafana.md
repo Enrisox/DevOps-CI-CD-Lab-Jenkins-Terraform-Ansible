@@ -1,5 +1,5 @@
 # Monitoring a VM with Prometheus and Grafana
-![Prometheus Dashboard (with space)](../imgs/prometheus%20dashboard.png)
+![Prometheus-Dashboard](../imgs/prometheus%20dashboard.png)
 
 **Prometheus: Time-Series Database (TSDB) & Scraper**
 Prometheus is an open-source systems monitoring and alerting toolkit based on a Pull Model.
