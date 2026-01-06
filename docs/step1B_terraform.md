@@ -24,7 +24,7 @@ terraform -version
 
 ## Dedicated API Token in Proxmox
 
-![Terraform](../imgs/token2.png)
+![Terraform](../imgs/token2.png) <br>
 I created a dedicated API Token in Proxmox (Datacenter -> Permissions -> API Tokens). Without this, Terraform does not have permission to access the server.
 
 - Add.
