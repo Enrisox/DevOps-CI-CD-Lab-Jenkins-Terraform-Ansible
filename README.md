@@ -37,6 +37,15 @@ The focus is on fundamentals, automation, and clarity, rather than production-sc
 2. **Infrastructure as Code** – Terraform provisions VMs; Ansible bootstraps OS, networking, Docker, and users.
 3. **CI/CD & Registry** – Jenkins (controller/agent) handles pipelines; AWS ECR stores Docker images.
 
+## Tutorial
+
+- [Step 0 – Proxmox Initial Setup](docs/step0_Proxmox_initial_setup.md)
+- [Step 1 – Terraform](docs/step1_Terraform.md)
+- [Step 2 – Ansible Provisioning](docs/step2_Ansible_provisioning.md)
+- [Step 3 – Jenkins](docs/step3_JENKINS.md)
+- [Step 4 – Pipeline as Code (Jenkinsfile)](docs/step4_Pipeline_as_Code(Jenkinsfile).md)
+- [Step 5 – Prometheus and Grafana](docs/step5_Prometheus_and_Grafana.md)
+
 
 ## My CI/CD Workflow
 
