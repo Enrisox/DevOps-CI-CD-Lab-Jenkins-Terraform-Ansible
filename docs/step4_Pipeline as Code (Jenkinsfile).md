@@ -31,9 +31,9 @@ pipeline {
     }
 }
 ```
-Java is the core engine that allows Jenkins to "exist" and execute tasks on machine .8. If you remove Java, the node will immediately appear as Offline in the Jenkins UI.
+**Java** is the core engine that allows Jenkins to "exist" and execute tasks on machine .8. If you remove Java, the node will immediately appear as Offline in the Jenkins UI.
 
-## continuous deployment pipeline (CD)
+## Continuous deployment pipeline (CD)
 Since the node is ready, we can create a pipeline that simulates a real deployment. This pipeline will clean up any old containers and launch a web application..
 
 **Installing AWS CLI v2 on the Runtime Node**
@@ -48,12 +48,11 @@ Copy and paste these three commands one at a time:
 
 ```bash
 curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"  # Download the official package
-
 unzip awscliv2.zip        # Extract the files
-
 sudo ./aws/install        # Run the installation
 ```
 **Verify the installation**
+
 ```bash
 aws --version
 ```
