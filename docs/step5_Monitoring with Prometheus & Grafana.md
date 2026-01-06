@@ -49,15 +49,15 @@ nano playbooks/monitoring.yml.
         published_ports:
           - "9100:9100"
         network_mode: host
-
 ```
 
 2. Then I ran the command to install the sensor on the Runtime VM (102):
+   
 ```yaml
-ansible-playbook -i inventory/hosts.ini playbooks/monitoring.yml
+ansible-playbook playbooks/monitoring.yml
 ```
 
-3.After the installation, I verified that the metrics were being exposed at:
+3. After the installation, I verified that the metrics were being exposed at:
 http://192.168.1.8:9100/metrics
 
 ## Install Prometheus + Grafana on the CI VM (101)
