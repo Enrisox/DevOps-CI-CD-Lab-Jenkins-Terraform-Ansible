@@ -46,7 +46,8 @@ mkdir ~/lab-proxmox && cd ~/lab-proxmox
 touch provider.tf main.tf vars.tf
 terraform init                     #Downloads the telmate/proxmox provider
 ```
-![Terraform](../imgs/terraform.png)
+![Terraform](../imgs/terraform.png)<br>
+
 (The green text in the output means it worked!!)
 
 In the terminal, inside the folder containing the files(lab-proxmox), I runned this sequence:
