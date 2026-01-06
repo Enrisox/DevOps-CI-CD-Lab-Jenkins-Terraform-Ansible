@@ -6,14 +6,13 @@
 **Jenkins** is an automation server (typically self‑hosted) used mainly for CI/CD: you define a “pipeline” that executes builds, tests, scans, packaging, and deployment when an event occurs (push, PR, cron, manual) or when you decide.
 
 **What Jenkins is for?**
-1. Orchestrating pipeline steps (build/test/deploy) on one or more agents/nodes, even in parallel.
-2. Integrating many different tools thanks to plugins (Git, Docker, Kubernetes, security scanners, notifications, etc.).
-3. Keeping everything “in‑house” (homelab/on‑prem) and having total control over network, credentials, runners, caching, and environments.
+1. **Orchestrating pipeline steps** (build/test/deploy) on one or more agents/nodes, even in parallel.
+2. **Integrating many different tools** thanks to plugins (Git, Docker, Kubernetes, security scanners, notifications, etc.).
+3. **Keeping everything on‑prem** and having total control over network, credentials, runners, caching, and environments.
 
 **Difference compared to GitHub Actions**
-- GitHub Actions is integrated into GitHub with managed or self‑hosted runners.
-- Jenkins you usually manage yourself on a VM/container.
-- Actions is native to GitHub; Jenkins is agnostic (GitHub/GitLab/Bitbucket/etc.), but you configure the integration yourself.
+- **GitHub Actions** is integrated into GitHub with managed or self‑hosted runners and native to GitHub.
+- **Jenkins** you usually manage yourself on a VM/container agnostic (GitHub/GitLab/Bitbucket/etc.), but you configure the integration yourself.
 
 **Setup/management**: Actions is more “ready out of the box”; Jenkins requires more maintenance (updates, plugins, backups, security), but it is more flexible when you want custom environments.
 
