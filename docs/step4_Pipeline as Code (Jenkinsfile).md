@@ -73,7 +73,7 @@ You should see something like aws-cli/2.x.x. If you see this, your node is final
 6. Click the Install button.
 
 
-## generate a key pair: Access Key ID and Secret Access Key.
+## Generate access Key ID and secret Access Key.
 ![IAM User Jenkins](../imgs/IAM-USER_jenkins.png)
 
 1. Log in to the AWS Console and search for the IAM service.
