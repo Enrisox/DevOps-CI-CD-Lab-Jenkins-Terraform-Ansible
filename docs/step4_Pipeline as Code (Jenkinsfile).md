@@ -87,8 +87,11 @@ You should see something like aws-cli/2.x.x. If you see this, your node is final
 6. Complete the user creation.
 7. Once the user is created, click on their name, go to the Security credentials tab, and click on Create access key.
 8. Select the Command Line Interface (CLI) use case and proceed until you get the two codes.<br>
+
 ![Policy](../imgs/policy.png)
+
 ***********************************************************************************
+
 ![IAM User Jenkins 2](../imgs/IAM-USER_jenkins2.png)
 
 ## Saving the IAM user credentials in Jenkins Global Credentials
