@@ -1,5 +1,5 @@
 # JENKINS Configuration and installation 
-![Jenkins Status](imgs/jenkins_image.png)
+![Jenkins Status](../imgs/jenkins_image.png)
 
 **What is Jenkins?** <br>
 
