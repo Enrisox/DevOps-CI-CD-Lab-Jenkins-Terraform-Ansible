@@ -138,8 +138,9 @@ java -version                          #verifies installation
 6. Launch method: Select Launch agents via SSH.
 7. Host: Static IP of the runtime VM: e.g.: 192.168.1.8.
 
-![New Node Configuration](../new-node.png)
-**Credentials:**
+![New Node Configuration](../imgs/new-node.png) <br>
+
+## Credentials:
 ![Node 1 Status](../imgs/node1.png) <br>
 
 1. Click on Add > Jenkins.
