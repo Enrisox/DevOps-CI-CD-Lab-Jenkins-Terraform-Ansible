@@ -20,7 +20,7 @@ Architectures: amd64
 
 1. **User synchronization**: I created a new system user using the adduser command and aligned it with the Proxmox Web GUI (accessible via https://[IP]:8006). By replicating the username and password in the Proxmox authentication system, I ensured consistent permissions across both the OS and the virtualization management layer.
 2. **VM provisioning & network setup**: I provisioned a base Ubuntu Server VM, allocating 1 CPU core and 2 GB of RAM. Initially, I performed a manual network configuration to verify connectivity within the lab environment before moving toward full automation.
-3. **Cloud-Init image acquisition**: I downloaded the Ubuntu Cloud-Init (cloudimg) ISO directly to the local Proxmox storage to serve as the foundation for my automation templates.
+3. **Cloud-Init image acquisition**: I downloaded the Ubuntu Cloud-Init (cloudimg) ISO directly to the local Proxmox storage to serve as the foundation for my automation templates. <br>
 
 ![Proxmox Cloud-Init Initial State](../imgs/img1%20(2).png)
 
@@ -30,11 +30,12 @@ I implemented a **Cloud-Init drive**, which is the essential for my Terraform an
 
 - **SSH Key injection**: I implemented this for secure, passwordless remote access, allowing tools like Ansible to automate tasks without manual intervention.
 - **User account & password**: I configured a primary user with a password as a fallback for local console access and to authorize administrative (sudo) operations.
-- **Static IP** address assignment.
+- **Networking**: I assigned a static IP address to ensure the VM is reachable at a predictable address.
 
+![Cloud-Init Configured Parameters](../imgs/cloud_init.png) <br>
 
 ## Template Creation Commands
-I used the QEMU Manager (qm), the native Proxmox CLI utility, to provision the base templates. This approach allowed me to script the initial VM configuration, ensuring a repeatable and consistent baseline for the subsequent Terraform-led automation.
+I used the QEMU Manager (qm)(the native Proxmox CLI utility), to provision the base templates. This approach allowed me to script the initial VM configuration, ensuring a repeatable and consistent baseline for the subsequent Terraform-led automation.
 
 ```bash
 qm create 100 --name ubuntu-template --memory 2048 --net0 virtio,bridge=vmbr0 --scsihw virtio-scsi-pci          #Created the VM template shell
