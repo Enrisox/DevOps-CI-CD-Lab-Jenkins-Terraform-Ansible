@@ -192,6 +192,7 @@ pipeline {
     }
 }
 ```
+## Pipeline has succeded
 ![Pipeline Success](../imgs/pipeline_success1.png) <br>
 
 ## Automation with SCM Polling
