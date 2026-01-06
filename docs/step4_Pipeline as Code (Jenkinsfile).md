@@ -1,5 +1,5 @@
 # Pipeline as Code (Jenkinsfile)
-
+<br>
 ![Pipeline](../imgs/pipeline-jenkins.png)<br>
 
 1. From the Jenkins dashboard  --> new element.
