@@ -86,7 +86,8 @@ You should see something like aws-cli/2.x.x. If you see this, your node is final
 5. Search for and select the policy: **AmazonEC2ContainerRegistryReadOnly** and **AWSCodeCommittReadOnly**. This policy allows Jenkins to see and pull images and see the repository of code, but not to delete them or upload new ones, which increases security.
 6. Complete the user creation.
 7. Once the user is created, click on their name, go to the Security credentials tab, and click on Create access key.
-8. Select the Command Line Interface (CLI) use case and proceed until you get the two codes.<br>
+8. Select the Command Line Interface (CLI) use case and proceed until you get the two codes.
+<br><br>
 
 ![Policy](../imgs/policy.png)
 
