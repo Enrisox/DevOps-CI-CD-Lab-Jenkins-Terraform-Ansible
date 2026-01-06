@@ -11,10 +11,10 @@
 
 **Testing the pipeline**
 <br>
-![Runtime Test](../imgs/runtime_test.png) <br>
-
+![Runtime Test](../imgs/runtime_test.png)
+ <br>
 --------------------------------------------------------------------------------------------------------
-<br>
+
 ```bash
 pipeline {
     agent { label 'runtime' }
