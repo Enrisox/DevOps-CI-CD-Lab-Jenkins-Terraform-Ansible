@@ -109,10 +109,10 @@ pipeline {
 
     environment {
         // --- CONFIGURAZIONE AWS ---
-        AWS_ACCOUNT_ID = '266735824805'
-        AWS_REGION     = 'eu-west-1'
-        REPO_NAME_ECR  = 'quiz-app'
-        CODECOMMIT_URL = 'https://git-codecommit.eu-west-1.amazonaws.com/v1/repos/AWS_QuizAPP'
+        AWS_ACCOUNT_ID = '**********'
+        AWS_REGION     = '****-****-1'
+        REPO_NAME_ECR  = '********'
+        CODECOMMIT_URL = 'https://git-codecommit.eu-************************'
         // --------------------------
         
         ECR_URL = "${AWS_ACCOUNT_ID}.dkr.ecr.${AWS_REGION}.amazonaws.com"
