@@ -1,14 +1,18 @@
 # Monitoring a VM with Prometheus and Grafana
+To monitor the health of my infrastructure, I organized the setup as follows:
 
-- VM 101 (Jenkins): Sarà il nostro "Centro di Comando". Qui faremo girare Prometheus (il database dei dati) e Grafana (i grafici).
-- VM 102 (Runtime): Sarà la "Sorgente". Qui installeremo un container chiamato node-exporter che monitora CPU, RAM e Rete.
+- VM 101 (Jenkins): This is my "Command Center." Here, I will run **Prometheus** (the time-series database for metrics) and Grafana (the dashboard for visualization).
 
-## Installare il "Sensore" sulla VM runtime via Ansible 
+VM 102 (Runtime): This is the "Source." I will install a container called **node-exporter** here, which monitors CPU, RAM, and Network usag
 
-sul mio PC Host , da ubuntu terminal che è il mio Ansible Control Node
+## Installing the "Sensor" on the Runtime VM via Ansible
 
-1. Creo un nuovo playbook:  playbooks/monitoring.yml
+I am performing these steps from my PC Host using the (WSL)Ubuntu terminal, which acts as my Ansible Control Node.
 
+First, I created a new playbook: 
+```yaml
+nano playbooks/monitoring.yml.
+```
 ```yaml
 - name: Install Monitoring Sensors
   hosts: runtime_group
@@ -26,18 +30,20 @@ sul mio PC Host , da ubuntu terminal che è il mio Ansible Control Node
 
 ```
 
-2. lancio il comando standard per installare il sensore sulla VM di Runtime (102)
-
+2. Then I ran the command to install the sensor on the Runtime VM (102):
 ```yaml
 ansible-playbook -i inventory/hosts.ini playbooks/monitoring.yml
 ```
 
-3. http://192.168.1.8:9100/metrics
+3.After the installation, I verified that the metrics were being exposed at:
+http://192.168.1.8:9100/metrics
 
-## Installo Prometheus + Grafana sulla VM CI (101)
-Ora dobbiamo fare in modo che la VM 101 vada a leggere questi dati dalla VM 102 e ce li mostri in un grafico.
+## Install Prometheus + Grafana on the CI VM (101)
+Now I need to make sure that VM 101 reads these data from VM 102 and displays them in a chart.
 
-Procediamo creando un playbook che configurerà tutto sulla VM 101.
+I proceeded by creating a configuration file (and the related playbook) to set everything up on VM 101.
+
+First, I created the **prometheus.yml** configuration file:
 
 ```yaml
 nano ~/lab-ansible/prometheus.yml
@@ -45,7 +51,7 @@ nano ~/lab-ansible/prometheus.yml
 
 ```yaml
 global:
-  scrape_interval: 15s # Frequenza di campionamento
+  scrape_interval: 15s # Sampling frequency
 
 scrape_configs:
   - job_name: 'node_exporter'
@@ -53,18 +59,16 @@ scrape_configs:
       - targets: ['192.168.1.8:9100']
 ```
 
-## Creo il Playbook playbooks/setup_monitoring_server.yml
-Questo playbook farà tre cose sulla VM Jenkins 101:
+## Let's create the Playbook playbooks/setup_monitoring_server.yml
+This playbook will perform three main tasks on the Jenkins VM (101):
 
-- Creerà una cartella per i dati.
-- Caricherà il file prometheus.yml appena creato.
-- Avvierà i container di Prometheus e Grafana.
-
+1. Create a directory for the configuration data.
+2. Upload the prometheus.yml file that I just created.
+3. Start the Prometheus and Grafana containers.
 
 ```yaml
 nano playbooks/setup_monitoring_server.yml
 ```
-
 
 ```yaml
 ---
@@ -105,39 +109,45 @@ nano playbooks/setup_monitoring_server.yml
           - "3000:3000"
 ```
 
-3. Eseguo il Playbook **setup_monitoring_server.yml**
+3. Run the playbook **setup_monitoring_server.yml**
 ```yaml
-ansible-playbook -i inventory/hosts.ini playbooks/setup_monitoring_server.yml
+ansible-playbook playbooks/setup_monitoring_server.yml
 ```
 
-## Primo Accesso a Grafana
-Apri il browser e vai su: http://192.168.1.7:3000
+## First access to Grafana
+I opened my browser and navigated to: http://192.168.1.7:3000
 
-Login:
+Login Credentials:
 
 User: admin
 Password: admin
 
-Ti chiederà di cambiare password:
+After logging in, the system prompted me to change the default password.
 
-## Collegare Prometheus a Grafana
+## Connecting Prometheus to Grafana
 
-1. Nella colonna di sinistra, clicca sull'icona dell'ingranaggio o cerca "Connections" -> "Data Sources".
-2. Clicca su "Add data source".
-3. Seleziona Prometheus.
-4. Nel campo URL, scrivi l'indirizzo della VM dove gira Prometheus (la stessa su cui sei ora): http://192.168.1.7:9090
-5. Scorri in fondo e clicca su "Save & Test".
-6. Deve apparire un messaggio verde: "Data source is working".
+1. To visualize the data, I had to link Prometheus as a data source inside Grafana:
+2. In the left-hand column, I clicked the gear icon (or searched for "Connections" -> "Data Sources").
+3. I clicked on "Add data source".
+4. I selected Prometheus.
+5. In the URL field, I entered the address of the VM where Prometheus is running: http://192.168.1.7:9090
+6. I scrolled to the bottom and clicked "Save & Test".
+7. A green message appeared confirming: "Data source is working".
+
+## Using a pre-made dashboard (1860)
+There are pre-made dashboards created by the community. The most famous one for the Node Exporter is ID 1860. 
+I followed these steps to set it up:
+
+1. From the menu of the data source I 've added in the previous step:
+2. I clicked on "New" and then on "Import".
+3. In the "Import via grafana.com" field, I entered 1860 and clicked "Load".
+4. I gave it a name (e.g., "Proxmox VM Monitoring").
+5. I clicked on "Import".
+
+Note: ID 1860 is a famous pre-made dashboard highly regarded for its ability to monitor Linux servers and Node Exporter. What is Node Exporter? It is a "sensor" that runs on a server and reads the system status (CPU, RAM, disk, network, etc.), making it readable for Prometheus.
 
 
-**Esistono dashboard già fatte dalla community. La più famosa per il Node Exporter è la 1860.**
 
-- Nel menu data source, in quella appena aggiunta.
-- Clicca su "New" e poi su "Import".
-- Nel campo "Import via grafana.com", scrivi  1860 e clicca su "Load".  ( 1860 è una dashboard pre-creata e famosa per le sue qualità di monitoraggio server Linux e node exporter( Node Exporter è un “sensore” che gira su un server e legge lo stato del sistema
-(CPU, RAM, disco, rete…) e lo rende leggibile a Prometheus.
-- Dagli un nome (es. "Monitoraggio VM Proxmox").
-- Clicca su "Import".
 
 
 
