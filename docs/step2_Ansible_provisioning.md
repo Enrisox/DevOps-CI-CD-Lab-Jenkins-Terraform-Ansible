@@ -25,7 +25,6 @@ ansible_ssh_private_key_file=~/.ssh/id_ed25519
 ansible_python_interpreter=/usr/bin/python3
 ```
 
-
 **YAML Format** More modern and structured, preferred in complex environments because it follows the same syntax as Playbooks.
 
 ```yaml
@@ -60,15 +59,6 @@ Ansible version 2.16.3 is correctly installed on the Linux subsystem.
 mkdir -p lab-ansible/{inventory,playbooks}
 cd lab-ansible
 ```
-
-**Final structure:**
-
-lab-ansible/
-├── inventory/
-│   └── hosts.ini
-└── playbooks/
-    └── 
-
 
 ## Writing the INVENTORY file "hosts.ini"
 
@@ -319,11 +309,10 @@ ansible all -a "docker ps"      #instead of: ansible all -i inventory/hosts.ini 
 ```
 
 ### Key Objectives Achieved:
-1. Automation: I successfully deployed the Docker Engine, CLI, and Compose plugins across both servers at once using a single playbook.
-2. Permission Hardening: I added userX to the docker group, allowing for container management without sudo, which is a requirement for seamless CI/CD integration.
-3. System Verification: I confirmed via Ansible that the Docker service is active, enabled on boot, and responding correctly on all lab nodes.
-4. The ansible.cfg file makes the project self-contained. If the project folder is moved or shared, the settings for the inventory and the remote user remain intact, ensuring that the playbooks always run in the same context.
-
+1. **Automation**: I successfully deployed the Docker Engine, CLI, and Compose plugins across both servers at once using a single playbook.
+2. **Permission Hardening**: I added userX to the docker group, allowing for container management without sudo, which is a requirement for seamless CI/CD integration.
+3. **System Verification**: I confirmed via Ansible that the Docker service is active, enabled on boot, and responding correctly on all lab nodes.
+4. **The ansible.cfg** file makes the project self-contained. If the project folder is moved or shared, the settings for the inventory and the remote user remain intact, ensuring that the playbooks always run in the same context.
 
 **Why i used the shorter command?**
 Once the ansible.cfg file is configured, the command becomes much simpler because Ansible now has a "default" behavior.
