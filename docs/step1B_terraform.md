@@ -57,7 +57,8 @@ In the terminal, inside the folder containing the files(lab-proxmox), I runned t
 - **terraform apply**: Physically executes the changes on Proxmox.
 
 ## Permission Management
-![Terraform](../imgs/token.png)
+![Terraform](../imgs/token.png) <br>
+
 On the Proxmox GUI, I configured the following permissions:
 
 - root@pam: I ensured permissions for / were assigned to the admins group.
