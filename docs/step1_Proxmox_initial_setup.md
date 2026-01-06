@@ -1,6 +1,7 @@
 ## Proxmox Installation & Initial Setup
+I installed Proxmox using a USB flash drive containing the ISO image.
 
-1. **Hardware Boot**: I installed Proxmox using a USB flash drive containing the ISO image. I accessed the BIOS (F1) and set the USB drive as the primary boot device.
+1. **Hardware Boot**: I accessed the BIOS (F1) and set the USB drive as the primary boot device.
 2. **System Configuration**: I proceeded with the graphical installation mode, where I assigned a static IP address, defined the system hostname, and configured the root password.
 3. **Repository Cleanup**: After the first boot, I executed apt update and apt upgrade. To resolve errors caused by the lack of a commercial license, I removed the enterprise-only repository entries from both /etc/apt/sources.list.d/ceph.sources and /etc/apt/sources.list.d/pve-enterprise.sources.
 4. **No-Subscription Repository**: I configured the community-supported repository by creating a new source file (/etc/apt/sources.list.d/pve-no-subscription.sources) and added the appropriate repository URL to enable system updates.
@@ -17,10 +18,11 @@ Architectures: amd64
 ```
 ## User Management & VM Template Creation
 
-1. **User Synchronization**: I created a new system user using the adduser command. To ensure seamless access, I replicated the same username and password within the Proxmox GUI (accessible via https://[IP]:8006).
-2. **VM Provisioning**: I provisioned a new Ubuntu Server VM, allocating 1 CPU core and 2 GB of RAM to meet the application's runtime requirements.
-3. **Network Setup**: After the base installation, I manually configured the network settings to ensure the VM was reachable within my lab environment.
-4. **Cloud-Init Image Acquisition**: I downloaded the Ubuntu Cloud-Init (cloudimg) ISO directly to the local Proxmox storage to serve as the foundation for my automation templates.
+1. **User synchronization**: I created a new system user using the adduser command and aligned it with the Proxmox Web GUI (accessible via https://[IP]:8006). By replicating the username and password in the Proxmox authentication system, I ensured consistent permissions across both the OS and the virtualization management layer.
+2. **VM provisioning & network setup**: I provisioned a base Ubuntu Server VM, allocating 1 CPU core and 2 GB of RAM. Initially, I performed a manual network configuration to verify connectivity within the lab environment before moving toward full automation.
+3. **Cloud-Init image acquisition**: I downloaded the Ubuntu Cloud-Init (cloudimg) ISO directly to the local Proxmox storage to serve as the foundation for my automation templates.
+
+![Proxmox Cloud-Init Initial State](../imgs/img1%20(2).png)
 
 ## Automating with Cloud-Init
 
