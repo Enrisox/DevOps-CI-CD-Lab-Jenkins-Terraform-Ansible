@@ -80,11 +80,12 @@ You should see something like aws-cli/2.x.x. If you see this, your node is final
 2. In the left menu, click on Users and then on Create user.
 3. Assign a name (e.g., jenkins-runtime-user). Do not select web console access; this user is only for programmatic access (API).
 4. On the Set permissions screen, select Attach policies directly.
-5. Search for and select the policy: AmazonEC2ContainerRegistryReadOnly. This policy allows Jenkins to see and pull images, but not to delete them or upload new ones, which increases security.
+5. Search for and select the policy: **AmazonEC2ContainerRegistryReadOnly** and **AWSCodeCommittReadOnly**. This policy allows Jenkins to see and pull images and see the repository of code, but not to delete them or upload new ones, which increases security.
 6. Complete the user creation.
 7. Once the user is created, click on their name, go to the Security credentials tab, and click on Create access key.
 8. Select the Command Line Interface (CLI) use case and proceed until you get the two codes.<br>
-
+![Policy](../imgs/policy.png)
+***********************************************************************************
 ![IAM User Jenkins 2](../imgs/IAM-USER_jenkins2.png)
 
 ## Saving the IAM user credentials in Jenkins Global Credentials
@@ -99,7 +100,7 @@ You should see something like aws-cli/2.x.x. If you see this, your node is final
 
 
 ## Creating a pipeline that pulls an image from my CodeCommit repo in AWS
-![Pipeline Success](../imgs/pipeline_success1.png)
+![HTTPS Creds](../imgs/https-creds.png)
 
 Prepare the credentials for CodeCommit.
 To allow Jenkins to read from CodeCommit, you need specific **Git credentials**:
@@ -109,7 +110,6 @@ To allow Jenkins to read from CodeCommit, you need specific **Git credentials**:
 3. Scroll down to **HTTPS Git credentials for AWS CodeCommit** and click on **Generate credentials**.
 4. **Save the Username and Password**.
 5. On Jenkins, add these credentials (Username with password type) with the ID **codecommit-creds**.
-
 
 ```bash
 pipeline {
@@ -185,6 +185,8 @@ pipeline {
     }
 }
 ```
+![Pipeline Success](../imgs/pipeline_success1.png) <br>
+
 ## Automation with SCM Polling
 
 To achieve full automation,**the pipeline is configured with SCM Polling**. This allows Jenkins to autonomously monitor the AWS CodeCommit repository without requiring external webhooks.
