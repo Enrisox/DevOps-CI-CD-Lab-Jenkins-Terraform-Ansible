@@ -158,8 +158,6 @@ ansible ci -a "cat /home/userX/jenkins_home/jenkins_key"
 9. Save
 <br>
 
-![New Node Configuration](../imgs/new-node.png) <br>
-
 NOTE: Why I chose to skip the host Key Verification?
 I chose to skip this verification for three main reasons:
 
