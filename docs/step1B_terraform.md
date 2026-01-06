@@ -24,6 +24,7 @@ terraform -version
 
 ## Dedicated API Token in Proxmox
 
+![Terraform](../imgs/token2.png)
 I created a dedicated API Token in Proxmox (Datacenter -> Permissions -> API Tokens). Without this, Terraform does not have permission to access the server.
 
 - Add.
@@ -44,6 +45,7 @@ mkdir ~/lab-proxmox && cd ~/lab-proxmox
 touch provider.tf main.tf vars.tf
 terraform init                     #Downloads the telmate/proxmox provider
 ```
+![Terraform](../imgs/terraform.png)
 (The green text in the output means it worked!!)
 
 In the terminal, inside the folder containing the files(lab-proxmox), I runned this sequence:
@@ -53,6 +55,7 @@ In the terminal, inside the folder containing the files(lab-proxmox), I runned t
 - **terraform apply**: Physically executes the changes on Proxmox.
 
 ## Permission Management
+![Terraform](../imgs/token.png)
 On the Proxmox GUI, I configured the following permissions:
 
 - root@pam: I ensured permissions for / were assigned to the admins group.
