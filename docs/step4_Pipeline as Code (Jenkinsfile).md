@@ -222,7 +222,8 @@ I used aws ecr get-login-password to retrieve a temporary token.
 **C. Pull & Security Scan**
 
 I pulled the latest image from my ECR repository. Before deployment, I added a security step: scanning the image with **Trivy**. This ensures that I am not deploying containers with known high-risk vulnerabilities. 
-**I integrated Trivy into this workflow as I was already familiar with it, having used it for the same purpose in my previous DevOps project**  --> click on the link to read it 
+<br>
+**I integrated Trivy into this workflow as I was already familiar with it, having used it for the same purpose in my previous DevOps project** 
 
 https://github.com/Enrisox/Secure-Home-Lab-Docker/blob/main/docs/step12_HARDENING_CONTAINERS.md
 
