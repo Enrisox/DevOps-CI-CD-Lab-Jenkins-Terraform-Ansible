@@ -1,4 +1,5 @@
 # Monitoring a VM with Prometheus and Grafana
+![Prometheus Dashboard (with space)](../imgs/prometheus%20dashboard.png)
 
 **Prometheus: Time-Series Database (TSDB) & Scraper**
 Prometheus is an open-source systems monitoring and alerting toolkit based on a Pull Model.
@@ -61,6 +62,9 @@ ansible-playbook playbooks/monitoring.yml
 http://192.168.1.8:9100/metrics
 
 ## Install Prometheus + Grafana on the CI VM (101)
+![Prometheus Dashboard](../imgs/prometheus-dashboard.png)
+
+
 Now I need to make sure that VM 101 reads these data from VM 102 and displays them in a chart.
 
 I proceeded by creating a configuration file (and the related playbook) to set everything up on VM 101.
@@ -148,15 +152,20 @@ After logging in, the system prompted me to change the default password.
 
 ## Connecting Prometheus to Grafana
 
+
 1. To visualize the data, I had to link Prometheus as a data source inside Grafana:
 2. In the left-hand column, I clicked the gear icon (or searched for "Connections" -> "Data Sources").
-3. I clicked on "Add data source".
-4. I selected Prometheus.
-5. In the URL field, I entered the address of the VM where Prometheus is running: http://192.168.1.7:9090
-6. I scrolled to the bottom and clicked "Save & Test".
-7. A green message appeared confirming: "Data source is working".
+![Grafana 0](../imgs/grafana0.png)
+4. I clicked on "Add data source".
+![No Data Source Add](../imgs/no-data-source-add.png)
+6. I selected Prometheus.
+7. In the URL field, I entered the address of the VM where Prometheus is running: http://192.168.1.7:9090
+8. I scrolled to the bottom and clicked "Save & Test".
+9. A green message appeared confirming: "Data source is working".
 
 ## Using a pre-made dashboard (1860)
+![Import Dashboard](../imgs/import-dashboard.png)
+
 There are pre-made dashboards created by the community. The most famous one for the Node Exporter is ID 1860. 
 I followed these steps to set it up:
 
