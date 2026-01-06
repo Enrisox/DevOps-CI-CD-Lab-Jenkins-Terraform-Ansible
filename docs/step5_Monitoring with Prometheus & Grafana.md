@@ -62,8 +62,6 @@ ansible-playbook playbooks/monitoring.yml
 http://192.168.1.8:9100/metrics
 
 ## Install Prometheus + Grafana on the CI VM (101)
-![Prometheus Dashboard](../imgs/prometheus-dashboard.png)
-
 
 Now I need to make sure that VM 101 reads these data from VM 102 and displays them in a chart.
 
@@ -177,7 +175,7 @@ I followed these steps to set it up:
 
 Note: ID 1860 is a famous pre-made dashboard highly regarded for its ability to monitor Linux servers and Node Exporter. What is Node Exporter? It is a "sensor" that runs on a server and reads the system status (CPU, RAM, disk, network, etc.), making it readable for Prometheus.
 
-
+![Prometheus Dashboard](../imgs/prometheus-dashboard.png)
 
 
 
