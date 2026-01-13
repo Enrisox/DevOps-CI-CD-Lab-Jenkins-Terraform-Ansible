@@ -2,7 +2,6 @@
 
 ## Hardware Setup
 
-- Lenovo E73 .
 - Quad-core CPU @ 2.70 GHz.
 - 8 GB DDR3 RAM.
 - SAMSUNG EVO 860 SSD 250 GB.
