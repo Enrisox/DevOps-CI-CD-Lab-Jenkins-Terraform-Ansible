@@ -61,7 +61,7 @@ nano playbooks/deploy-jenkins.yml
           - "8080:8080"   # Web Interface
           - "50000:50000" # Port for future build agents
         volumes:
-          - /home/enrico/jenkins_home:/var/jenkins_home
+          - /home/userX/jenkins_home:/var/jenkins_home
         env:
           JAVA_OPTS: "-Djenkins.install.runSetupWizard=true"
 ```
@@ -94,16 +94,16 @@ This is a temporary file created by Jenkins during the first boot. It acts as a 
 
 # Agent Node (Runtime) Configuration
 
-1. We will create an SSH key to allow Jenkins to enter machine .8.
-2. We will configure machine .8 inside the Jenkins interface.
-3. We will do a test: we will ask Jenkins to launch a command on .8 to see if it "obeys".
-4. Now we will make it so that the "Foreman" (Jenkins on .7) can give orders to the "Worker" (Runtime on .8). To do this, we will use an SSH key.
+1. Create an SSH key to allow Jenkins to enter machine 192.168.1..8.
+2. Configure machine 192.168.1.8 inside the Jenkins interface.
+3. Do a test: ask Jenkins to launch a command on 192.168.1.8.
+4. Make it so that the Jenkins, on 192.168.1.7 can give orders to the "Worker" (Runtime on 192.168.1.8). To do this, I will use an SSH key.
 
-The trick is this: we will generate the key on machine .7 (inside the Jenkins folder) and copy it to machine .8.
+I will generate the key on machine 192.168.1.7 (inside the Jenkins folder) and copy it to machine 192.168.1.8.
 
 **1. Generate the SSH key on the Jenkins server**
 
-I ran this command from my WSL. I used Ansible to tell machine .7 to create a key right in the folder I mapped for Jenkins:
+I ran this command from my WSL. I used Ansible to tell machine .7 to create a key right in the folder I have mapped for Jenkins:
 
 ```bash
 ansible ci -m shell -a "ssh-keygen -t ed25519 -f /home/userX/jenkins_home/jenkins_key -N ''"
