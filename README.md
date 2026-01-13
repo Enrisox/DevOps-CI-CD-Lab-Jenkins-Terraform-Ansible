@@ -61,6 +61,8 @@ I am passionate about experimenting and building hands-on labs with the tools at
 This project was developed as part of my training to practice and consolidate skills in **DevSecOps tools and methodologies**, including automation, infrastructure management, CI/CD pipelines, and containerized environments.
 This repository contains a self-hosted DevOps lab built to practice real-world CI/CD concepts using modern DevOps tools.
 The lab environment is deployed on Proxmox and fully automated using Terraform and Ansible. CI/CD pipelines are implemented with Jenkins and Docker, leveraging AWS CodeCommit for source control and Amazon ECR for container image management.
-The focus is on fundamentals, automation, and clarity, rather than production-scale complexity.
+**The focus is on fundamentals, automation, and clarity, rather than production-scale complexity.**
+
+⭐ **If you liked my project, give it a star!**
 
 enricosoci@protonmail.com
