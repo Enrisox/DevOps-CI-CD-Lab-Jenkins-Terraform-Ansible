@@ -30,7 +30,7 @@
 - [Step 1 – Terraform](docs/step1_Terraform.md)
 - [Step 2 – Ansible Provisioning](docs/step2_Ansible_provisioning.md)
 - [Step 3 – Jenkins](docs/step3_JENKINS.md)
-- [Step 4 – Jenkinsfile and AWS ECR](docs/step4_Jenkinsfile_&_AWS-ECR.md)
+- [Step 4 – Jenkinsfile and AWS CodeCommit](docs/step4_Jenkinsfile_&_AWS-CodeCommit.md)
 - [Step 5 – Prometheus and Grafana](docs/step5_Prometheus_and_Grafana.md)
 
 
