@@ -173,7 +173,8 @@ I followed these steps to set it up:
 4. I gave it a name (e.g., "Proxmox VM Monitoring").
 5. I clicked on "Import".
 
-Note: ID 1860 is a famous pre-made dashboard highly regarded for its ability to monitor Linux servers and Node Exporter. What is Node Exporter? It is a "sensor" that runs on a server and reads the system status (CPU, RAM, disk, network, etc.), making it readable for Prometheus.
+**1860** is a famous pre-made dashboard highly regarded for its ability to monitor Linux servers and Node Exporter. <br>
+What is **Node exporter**? It is a "sensor" that runs on a server and reads the system status (CPU, RAM, disk, network, etc.), making it readable for Prometheus.
 
 ![Prometheus Dashboard](../imgs/prometheus-dashboard.png)
 
