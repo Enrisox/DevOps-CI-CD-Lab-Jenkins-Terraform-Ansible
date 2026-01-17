@@ -15,25 +15,25 @@ A **pull model** in Prometheus means Prometheus actively scrapes metrics by peri
 
 
 **Grafana: Visualization & Observability Layer**
-Grafana is a multi-platform open-source analytics and interactive visualization web application.
+**Grafana** is a multi-platform open-source analytics and interactive visualization web application.
 
-- Data Source Integration: It does not store data. It connects to backends like Prometheus, InfluxDB, or Elasticsearch via a Data Source plugin.
-- Query Mapping: It sends PromQL queries to Prometheus, receives the raw time-series data, and renders it into Panels (Graphs, Gauges, Heatmaps).
-- Dashboarding: It provides a unified UI to build complex dashboards that correlate data from multiple sources.
+- **Data Source Integration**: It does not store data. It connects to backends like Prometheus, InfluxDB, or Elasticsearch via a Data Source plugin.
+- **Query Mapping**: It sends PromQL queries to Prometheus, receives the raw time-series data, and renders it into panels (Graphs, Gauges, Heatmaps).
+- **Dashboarding**: It provides a unified UI to build complex dashboards that correlate data from multiple sources.
 
 **It handles the presentation layer and user interface for observability.**
 
 To monitor the health of my infrastructure, I organized the setup as follows:
 
-- **VM Jenkins**: This is my "Command Center." Here, I will run **Prometheus** (the time-series database for metrics) and Grafana (the dashboard for visualization).
-
+- **VM Jenkins**: This is my "Command Center." Here, I will run **Prometheus** (the time-series database for metrics) and **Grafana**.
 - **VM Runtime**: This is the "Source" I will install a container called **node-exporter** here, which monitors CPU, RAM, and Network usage.
 
 ## Installing the "Sensor" on the Runtime VM via Ansible
 
-I am performing these steps from my PC Host using the (WSL)Ubuntu terminal, which acts as my Ansible Control Node.
+I am performing these steps from my main desktop PC using the (WSL)Ubuntu terminal I've previously installed, which acts as my **Ansible control node**. <br> An Ansible Control Node is the machine where Ansible is installed and from which you run Ansible commands (like ansible and ansible-playbook) to manage other machines.
 
-First, I created a new playbook: 
+
+**1. First, I created a new playbook:**
 ```yaml
 nano playbooks/monitoring.yml.
 ```
@@ -53,13 +53,13 @@ nano playbooks/monitoring.yml.
         network_mode: host
 ```
 
-2. Then I ran the command to install the sensor on the Runtime VM (102):
+2. **Then I ran the command to install the sensor on the Runtime VM (102):**
    
 ```yaml
 ansible-playbook playbooks/monitoring.yml
 ```
 
-3. After the installation, I verified that the metrics were being exposed at:
+3. **After the installation, I verified that the metrics were being exposed at:**
 http://192.168.1.8:9100/metrics
 
 ## Install Prometheus + Grafana on the CI VM (101)
@@ -150,7 +150,6 @@ Password: admin
 After logging in, the system prompted me to change the default password.
 
 ## Connecting Prometheus to Grafana
-
 
 1. To visualize the data, I had to link Prometheus as a data source inside Grafana:
 2. In the left-hand column, I clicked the gear icon (or searched for "Connections" -> "Data Sources").
