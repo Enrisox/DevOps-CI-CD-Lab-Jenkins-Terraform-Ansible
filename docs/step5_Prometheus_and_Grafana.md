@@ -144,8 +144,8 @@ I opened my browser and navigated to: http://192.168.1.7:3000
 
 Login Credentials:
 
-User: admin
-Password: admin
+- User: admin
+- Password: admin
 
 After logging in, the system prompted me to change the default password.
 
