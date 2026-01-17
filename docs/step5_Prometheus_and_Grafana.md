@@ -2,15 +2,16 @@
 ![Prometheus-Dashboard](../imgs/prometheus%20dashboard.png)
 
 **Prometheus: Time-Series Database (TSDB) & Scraper**
-Prometheus is an open-source systems monitoring and alerting toolkit based on a Pull Model.
+Prometheus is an open-source systems monitoring and alerting toolkit based on a pull Model. <br>
+A **pull model** in Prometheus means Prometheus actively scrapes metrics by periodically sending HTTP requests to applications/hosts, instead of applications pushing metrics to Prometheus. In practice, each target exposes an HTTP endpoint, and Prometheus is configured with the list of targets plus a scrape interval; at each interval it fetches the current metric values and stores them as time series.
 
-- Data Model: It stores data as Time-Series, identified by metric name and key/value pairs (labels).
+- **Data Model**: It stores data as Time-Series, identified by metric name and key/value pairs (labels).
 
 **Architecture:**
 
-- Scraper: It pulls metrics from HTTP endpoints (like 192.168.1.8:9100/metrics) at defined scrape_intervals.
-- Storage: Uses a local TSDB (Time-Series Database) optimized for high-ingestion rates of timestamped data.
-- PromQL: A functional query language that allows you to select and aggregate time-series data in real time.
+- **Scraper**: It pulls metrics from HTTP endpoints (like 192.168.1.8:9100/metrics) at defined scrape_intervals. <br>In Prometheus, scraping is the action where the Prometheus server periodically contacts a target (an app, exporter, node, etc.) over HTTP and reads the metrics it exposes, typically on the /metrics endpoint.
+- **Storage**: Uses a local TSDB (Time-Series Database) optimized for high-ingestion rates of timestamped data.
+- **PromQL**: A functional query language that allows you to select and aggregate time-series data in real time.
 
 
 **Grafana: Visualization & Observability Layer**
